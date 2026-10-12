@@ -54,7 +54,12 @@ export function AuthDialog() {
   }, []);
 
   const loginMutation = trpc.auth.login.useMutation({
-    onSuccess: async () => {
+    onSuccess: async (data) => {
+      try {
+        if (data?.user?.name) {
+          localStorage.setItem("uyjoy_user_name", data.user.name);
+        }
+      } catch {}
       await utils.auth.me.invalidate();
       setOpen(false);
       toast.success(t.auth_login + " muvaffaqiyatli!", {
@@ -421,15 +426,8 @@ export function AuthDialog() {
 
               {mode === "register" && (
                 <div className="bg-[#f9f7f5] rounded-xl p-2.5 text-[11px] text-gray-500 space-y-1">
-                  <p className="font-semibold text-gray-700">Parol talablari:</p>
                   <p className="flex items-center gap-1">
-                    <span className={form.password.length >= 8 ? "text-green-600 font-bold" : "text-gray-400"}>✓</span> Kamida 8 ta belgi
-                  </p>
-                  <p className="flex items-center gap-1">
-                    <span className={/[A-Z]/.test(form.password) && /[a-z]/.test(form.password) ? "text-green-600 font-bold" : "text-gray-400"}>✓</span> Katta va kichik harf
-                  </p>
-                  <p className="flex items-center gap-1">
-                    <span className={/\d/.test(form.password) && /[^A-Za-z0-9]/.test(form.password) ? "text-green-600 font-bold" : "text-gray-400"}>✓</span> Raqam va maxsus belgi (namuna: <strong className="text-gray-700">Uyjoy2026!</strong>)
+                    <span className={form.password.length >= 6 ? "text-green-600 font-bold" : "text-gray-400"}>✓</span> Kamida 6 ta belgi (harflar yoki raqamlar)
                   </p>
                 </div>
               )}

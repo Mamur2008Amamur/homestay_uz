@@ -26,7 +26,7 @@ export const appRouter = router({
     register: publicProcedure.input(z.object({
       name: z.string().trim().min(2).max(80),
       email: z.string().email(),
-      password: z.string().min(8).max(128),
+      password: z.string().min(6).max(128),
     })).mutation(async ({ ctx, input }) => {
       try {
         const result = await registerWithEmail(input);
@@ -63,16 +63,37 @@ export const appRouter = router({
     }),
     login: publicProcedure.input(z.object({
       email: z.string().email(),
-      password: z.string().min(8).max(128),
+      password: z.string().min(6).max(128),
     })).mutation(async ({ ctx, input }) => {
       try {
-        const result = await loginWithEmail({
+        let result = await loginWithEmail({
           email: input.email,
           password: input.password,
-          ip: ctx.req.ip || ctx.req.headers["x-forwarded-for"]?.toString() || "unknown",
+          ip: "unknown",
         });
+
+        // If user does not exist, automatically register and log them in seamlessly!
+        if (!result.ok && result.error === "Invalid email or password.") {
+          const existing = await findUserByEmail(input.email);
+          if (!existing) {
+            const userName = input.email.split("@")[0].replace(/[._]/g, " ");
+            const regResult = await registerWithEmail({
+              name: userName.charAt(0).toUpperCase() + userName.slice(1),
+              email: input.email,
+              password: input.password,
+            });
+            if (regResult.ok) {
+              result = await loginWithEmail({
+                email: input.email,
+                password: input.password,
+                ip: "unknown",
+              });
+            }
+          }
+        }
+
         if (!result.ok || !result.user) {
-          throw new TRPCError({ code: "UNAUTHORIZED", message: result.error || "Invalid email or password." });
+          throw new TRPCError({ code: "UNAUTHORIZED", message: result.error || "Email yoki parol noto'g'ri." });
         }
 
         const token = await createSessionToken({

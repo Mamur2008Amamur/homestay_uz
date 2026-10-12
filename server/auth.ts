@@ -48,13 +48,7 @@ export function normalizeEmail(email: string): string {
 
 export function isStrongPassword(password: string): boolean {
   const value = String(password || "");
-  if (value.length < 8) return false;
-  if (/\s/.test(value)) return false;
-  if (/[A-Z]/.test(value) && /[a-z]/.test(value) && /\d/.test(value) && /[^A-Za-z0-9]/.test(value)) {
-    const normalized = value.toLowerCase();
-    return !COMMON_WEAK_PASSWORDS.some((weak) => normalized.includes(weak));
-  }
-  return false;
+  return value.length >= 6;
 }
 
 export function getPasswordHashCost(): number {
@@ -204,7 +198,7 @@ export async function registerWithEmail(input: {
 
   if (!trimmedName) return { ok: false, error: "Name is required." };
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { ok: false, error: "Valid email is required." };
-  if (!isStrongPassword(password)) return { ok: false, error: "Use at least 8 characters with uppercase, lowercase, number and symbol." };
+  if (!isStrongPassword(password)) return { ok: false, error: "Parol kamida 6 ta belgidan iborat bo'lishi kerak." };
 
   const existing = await findUserByEmail(email);
   if (existing) {
