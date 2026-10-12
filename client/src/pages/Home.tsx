@@ -206,17 +206,6 @@ export default function Home() {
     window.addEventListener("scroll",h); return ()=>window.removeEventListener("scroll",h);
   },[]);
 
-  // Yangi kelgan va hali kirmagan foydalanuvchiga ro'yxatdan o'tish oynasini ochish
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (!isAuthenticated) {
-      const timer = setTimeout(() => {
-        startLogin("register");
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-  }, [isAuthenticated]);
-
   // Close dest dropdown on outside click
   useEffect(()=>{
     const h=(e:MouseEvent)=>{if(destRef.current&&!destRef.current.contains(e.target as Node))setShowDestDrop(false);};

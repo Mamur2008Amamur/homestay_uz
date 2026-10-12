@@ -16,10 +16,19 @@ export async function createContext(
   let user: User | null = null;
 
   try {
-    const rawCookie = opts.req.headers.cookie || "";
-    const match = rawCookie.split(";").map((part) => part.trim()).find((part) => part.startsWith(`${COOKIE_NAME}=`));
-    if (match) {
-      const token = decodeURIComponent(match.slice(COOKIE_NAME.length + 1));
+    let token = "";
+    const authHeader = opts.req.headers.authorization;
+    if (authHeader && authHeader.toLowerCase().startsWith("bearer ")) {
+      token = authHeader.slice(7).trim();
+    }
+    if (!token) {
+      const rawCookie = opts.req.headers.cookie || "";
+      const match = rawCookie.split(";").map((part) => part.trim()).find((part) => part.startsWith(`${COOKIE_NAME}=`));
+      if (match) {
+        token = decodeURIComponent(match.slice(COOKIE_NAME.length + 1));
+      }
+    }
+    if (token) {
       const dbUser = await loadUserFromToken(token);
       if (dbUser) {
         user = dbUser as User;

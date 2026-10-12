@@ -48,11 +48,13 @@ export const appRouter = router({
 
         const token = await createSessionToken({
           id: user.user.id,
+          name: user.user.name,
+          email: user.user.email,
           role: user.user.role,
           passwordChangedAt: user.user.passwordChangedAt ?? null,
         });
         setSessionCookie(ctx.res, ctx.req, token);
-        return { ok: true, requiresVerification: false, user: user.user };
+        return { ok: true, requiresVerification: false, user: user.user, token };
       } catch (err: any) {
         if (err instanceof TRPCError) throw err;
         console.error("[register error]", err);
@@ -99,11 +101,13 @@ export const appRouter = router({
 
         const token = await createSessionToken({
           id: result.user.id,
+          name: result.user.name,
+          email: result.user.email,
           role: result.user.role,
           passwordChangedAt: result.user.passwordChangedAt ?? null,
         });
         setSessionCookie(ctx.res, ctx.req, token);
-        return { ok: true, user: result.user };
+        return { ok: true, user: result.user, token };
       } catch (err: any) {
         if (err instanceof TRPCError) throw err;
         console.error("[login error]", err);

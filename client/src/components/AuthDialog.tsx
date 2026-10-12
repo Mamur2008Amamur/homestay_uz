@@ -56,10 +56,17 @@ export function AuthDialog() {
   const loginMutation = trpc.auth.login.useMutation({
     onSuccess: async (data) => {
       try {
-        if (data?.user?.name) {
-          localStorage.setItem("uyjoy_user_name", data.user.name);
+        if (data?.token) {
+          localStorage.setItem("uyjoy_auth_token", data.token);
+        }
+        if (data?.user) {
+          localStorage.setItem("manus-runtime-user-info", JSON.stringify(data.user));
+          if (data.user.name) {
+            localStorage.setItem("uyjoy_user_name", data.user.name);
+          }
         }
       } catch {}
+      utils.auth.me.setData(undefined, data.user);
       await utils.auth.me.invalidate();
       setOpen(false);
       toast.success(t.auth_login + " muvaffaqiyatli!", {
@@ -72,13 +79,20 @@ export function AuthDialog() {
   });
 
   const registerMutation = trpc.auth.register.useMutation({
-    onSuccess: async () => {
+    onSuccess: async (data) => {
       try {
+        if (data?.token) {
+          localStorage.setItem("uyjoy_auth_token", data.token);
+        }
+        if (data?.user) {
+          localStorage.setItem("manus-runtime-user-info", JSON.stringify(data.user));
+        }
         if (form.avatar) localStorage.setItem("uyjoy_user_avatar", form.avatar);
         if (form.phone) localStorage.setItem("uyjoy_user_phone", form.phone.trim());
         if (form.city) localStorage.setItem("uyjoy_user_city", form.city.trim());
         localStorage.setItem("uyjoy_user_name", form.name.trim());
       } catch {}
+      utils.auth.me.setData(undefined, data?.user ?? null);
       await utils.auth.me.invalidate();
       setOpen(false);
       toast.success("Ro'yxatdan o'tish muvaffaqiyatli yakunlandi!", {

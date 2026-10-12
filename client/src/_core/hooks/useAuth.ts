@@ -42,7 +42,14 @@ export function useAuth(options?: UseAuthOptions) {
       // Clear the Preview auto-login token mirrored into sessionStorage, so
       // header-based sessions (Safari ITP / WebView) are logged out too. The
       // backend cookie is cleared by the logout mutation.
+      // Clear tokens and stored profiles
       try {
+        localStorage.removeItem("uyjoy_auth_token");
+        localStorage.removeItem("uyjoy_user_name");
+        localStorage.removeItem("uyjoy_user_avatar");
+        localStorage.removeItem("uyjoy_user_phone");
+        localStorage.removeItem("uyjoy_user_city");
+        localStorage.removeItem("manus-runtime-user-info");
         sessionStorage.removeItem("manus-cookie");
       } catch {}
       utils.auth.me.setData(undefined, null);
@@ -50,12 +57,21 @@ export function useAuth(options?: UseAuthOptions) {
     }
   }, [logoutMutation, utils]);
 
+  const cachedUser = useMemo(() => {
+    try {
+      const raw = localStorage.getItem("manus-runtime-user-info");
+      if (raw && raw !== "null") return JSON.parse(raw);
+    } catch {}
+    return null;
+  }, []);
+
   const state = useMemo(() => {
+    const effectiveUser = meQuery.data ?? (meQuery.isLoading ? cachedUser : null);
     return {
-      user: meQuery.data ?? null,
+      user: effectiveUser,
       loading: meQuery.isLoading || logoutMutation.isPending,
       error: meQuery.error ?? logoutMutation.error ?? null,
-      isAuthenticated: Boolean(meQuery.data),
+      isAuthenticated: Boolean(effectiveUser),
     };
   }, [
     meQuery.data,
@@ -63,14 +79,24 @@ export function useAuth(options?: UseAuthOptions) {
     meQuery.isLoading,
     logoutMutation.error,
     logoutMutation.isPending,
+    cachedUser,
   ]);
 
   useEffect(() => {
-    localStorage.setItem(
-      "manus-runtime-user-info",
-      JSON.stringify(meQuery.data)
-    );
-  }, [meQuery.data]);
+    if (meQuery.data) {
+      try {
+        localStorage.setItem(
+          "manus-runtime-user-info",
+          JSON.stringify(meQuery.data)
+        );
+      } catch {}
+    } else if (meQuery.data === null && !meQuery.isLoading) {
+      const token = typeof window !== "undefined" ? localStorage.getItem("uyjoy_auth_token") : null;
+      if (!token) {
+        try { localStorage.removeItem("manus-runtime-user-info"); } catch {}
+      }
+    }
+  }, [meQuery.data, meQuery.isLoading]);
 
   useEffect(() => {
     if (!redirectOnUnauthenticated) return;
