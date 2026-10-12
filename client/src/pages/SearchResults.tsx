@@ -71,8 +71,16 @@ function Navbar() {
           <div ref={userRef} className="relative">
             <button onClick={() => setUserOpen(v=>!v)} className="flex items-center gap-2 border border-[#f0e5e0] rounded-full py-1.5 pl-3 pr-2 hover:shadow-[0_10px_20px_rgba(0,0,0,0.08)] transition-shadow bg-white text-sm shadow-sm">
               <SlidersHorizontal size={15} className="text-gray-600"/>
-              <div className="w-7 h-7 rounded-full bg-[linear-gradient(135deg,#4b5563,#111827)] flex items-center justify-center overflow-hidden shadow-sm">
-                <span className="text-white text-xs font-bold">{user?.name?.[0] ?? "U"}</span>
+              <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden shadow-xs border border-gray-200">
+                {isAuthenticated && (typeof window !== "undefined" && localStorage.getItem("uyjoy_user_avatar")) ? (
+                  <img
+                    src={localStorage.getItem("uyjoy_user_avatar")!}
+                    alt="User"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-[#e8175d] text-xs font-bold">{user?.name?.[0] ?? "U"}</span>
+                )}
               </div>
             </button>
             {userOpen && (

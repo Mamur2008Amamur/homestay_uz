@@ -89,10 +89,21 @@ function UserNav({ transparent }:{transparent:boolean}) {
     document.addEventListener("mousedown",h); return ()=>document.removeEventListener("mousedown",h);
   },[]);
   const cls = transparent ? "text-white" : "text-gray-700";
+  const savedAvatar = typeof window !== "undefined" ? localStorage.getItem("uyjoy_user_avatar") : null;
+  const avatarSrc = savedAvatar || "/listings/user-avatar.svg";
+
   return (
     <div ref={ref} className="relative">
       <button onClick={()=>setOpen(v=>!v)} className={`flex items-center gap-2 text-sm font-medium hover:opacity-80 transition-opacity ${cls}`}>
-        <UserCircle2 size={26}/>
+        {isAuthenticated ? (
+          <img
+            src={avatarSrc}
+            alt={user?.name || "Profil"}
+            className="w-7 h-7 rounded-full object-cover border-2 border-white/80 shadow-xs"
+          />
+        ) : (
+          <UserCircle2 size={26}/>
+        )}
         <span className="hidden sm:block">{isAuthenticated ? user?.name?.split(" ")[0] : t.nav_login}</span>
         <ChevronDown size={13}/>
       </button>
@@ -194,6 +205,19 @@ export default function Home() {
     const h=()=>setScrolled(window.scrollY>60);
     window.addEventListener("scroll",h); return ()=>window.removeEventListener("scroll",h);
   },[]);
+
+  // Yangi kelgan foydalanuvchiga ro'yxatdan o'tishni tavsiya qilish
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const hasPrompted = sessionStorage.getItem("uyjoy_prompted_register");
+    if (!isAuthenticated && !hasPrompted) {
+      sessionStorage.setItem("uyjoy_prompted_register", "1");
+      const timer = setTimeout(() => {
+        startLogin("register");
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [isAuthenticated]);
 
   // Close dest dropdown on outside click
   useEffect(()=>{

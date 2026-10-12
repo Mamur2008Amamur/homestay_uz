@@ -60,8 +60,17 @@ export default function HomestayHeader({ overlay = false }: Props) {
             )}
           </div>
           {isAuthenticated ? (
-            <button onClick={() => logout()} className="flex items-center gap-2 rounded-full border border-[#dedbd6] px-4 py-2 text-xs font-bold text-[#273c3a] transition hover:border-[#d52a75]">
-              <UserRound size={15} /><span>{user?.name?.split(" ")[0] || t.nav_logout}</span>
+            <button onClick={() => logout()} className="flex items-center gap-2 rounded-full border border-[#dedbd6] pl-2 pr-4 py-1.5 text-xs font-bold text-[#273c3a] transition hover:border-[#d52a75]">
+              {typeof window !== "undefined" && localStorage.getItem("uyjoy_user_avatar") ? (
+                <img
+                  src={localStorage.getItem("uyjoy_user_avatar")!}
+                  alt="User"
+                  className="w-5 h-5 rounded-full object-cover"
+                />
+              ) : (
+                <UserRound size={15} />
+              )}
+              <span>{user?.name?.split(" ")[0] || t.nav_logout}</span>
             </button>
           ) : (
             <button onClick={startLogin} className="rounded-full bg-[#273c3a] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#183a37]">{t.nav_login}</button>

@@ -16,6 +16,8 @@ type FormState = {
   password: string;
   code: string;
   avatar: string;
+  phone: string;
+  city: string;
 };
 
 const EMPTY_FORM: FormState = {
@@ -24,6 +26,8 @@ const EMPTY_FORM: FormState = {
   password: "",
   code: "",
   avatar: "",
+  phone: "",
+  city: "Toshkent",
 };
 
 export function AuthDialog() {
@@ -64,9 +68,12 @@ export function AuthDialog() {
 
   const registerMutation = trpc.auth.register.useMutation({
     onSuccess: async () => {
-      if (form.avatar) {
-        try { localStorage.setItem("uyjoy_user_avatar", form.avatar); } catch {}
-      }
+      try {
+        if (form.avatar) localStorage.setItem("uyjoy_user_avatar", form.avatar);
+        if (form.phone) localStorage.setItem("uyjoy_user_phone", form.phone.trim());
+        if (form.city) localStorage.setItem("uyjoy_user_city", form.city.trim());
+        localStorage.setItem("uyjoy_user_name", form.name.trim());
+      } catch {}
       await utils.auth.me.invalidate();
       setOpen(false);
       toast.success("Ro'yxatdan o'tish muvaffaqiyatli yakunlandi!", {
@@ -269,54 +276,96 @@ export function AuthDialog() {
         <form onSubmit={submit} className="space-y-4 p-5 sm:p-6">
           {mode === "register" && (
             <>
-              {/* Profile Photo Upload */}
-              <div className="flex items-center gap-3.5 p-3 rounded-2xl bg-[#faf8f6] border border-gray-200">
-                <div className="relative shrink-0">
-                  <img
-                    src={form.avatar || "/listings/host-avatar.svg"}
-                    alt="Profil rasmi"
-                    className="w-14 h-14 rounded-full object-cover border-2 border-white shadow-sm bg-white"
-                  />
-                  <label className="absolute -bottom-1 -right-1 bg-[#e8175d] text-white p-1.5 rounded-full cursor-pointer hover:bg-[#c0124d] transition-colors shadow">
-                    <Camera size={13} />
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handleAvatarUpload}
+              {/* Profile Photo Upload - Prominent & Essential */}
+              <div className="p-3.5 rounded-2xl bg-[#faf8f6] border-2 border-dashed border-[#e8175d]/30 hover:border-[#e8175d] transition-colors">
+                <div className="flex items-center gap-3.5">
+                  <div className="relative shrink-0">
+                    <img
+                      src={form.avatar || "/listings/host-avatar.svg"}
+                      alt="Profil rasmi"
+                      className="w-16 h-16 rounded-full object-cover border-2 border-white shadow-md bg-white"
                     />
-                  </label>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between">
-                    <p className="text-xs font-bold text-gray-800">Shaxsiy rasm (Avatar)</p>
-                    {form.avatar && (
-                      <button
-                        type="button"
-                        onClick={() => setForm((c) => ({ ...c, avatar: "" }))}
-                        className="text-[11px] text-red-500 hover:underline"
-                      >
-                        O'chirish
-                      </button>
-                    )}
+                    <label className="absolute -bottom-1 -right-1 bg-[#e8175d] text-white p-1.5 rounded-full cursor-pointer hover:bg-[#c0124d] transition-colors shadow">
+                      <Camera size={14} />
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleAvatarUpload}
+                      />
+                    </label>
                   </div>
-                  <p className="text-[11px] text-gray-500 mt-0.5 leading-snug">
-                    Ushbu rasm uyingizni e'lon qilganda mezbon sifatida ko'rinadi
-                  </p>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs font-bold text-gray-900 flex items-center gap-1">
+                        Shaxsiy suratingiz <span className="text-[#e8175d]">*</span>
+                      </p>
+                      {form.avatar && (
+                        <button
+                          type="button"
+                          onClick={() => setForm((c) => ({ ...c, avatar: "" }))}
+                          className="text-[11px] text-red-500 hover:underline"
+                        >
+                          O'chirish
+                        </button>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-gray-500 mt-0.5 leading-snug">
+                      Saytda va uylaringizda begona odamlar rasmi emas, aynan sizning haqiqiy suratingiz chiqadi
+                    </p>
+                    <label className="inline-flex items-center gap-1.5 mt-2 px-3 py-1 rounded-lg bg-white border border-gray-200 text-[11px] font-semibold text-[#e8175d] cursor-pointer hover:bg-gray-50 shadow-xs">
+                      <Camera size={12}/> Rasmni tanlash
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleAvatarUpload}
+                      />
+                    </label>
+                  </div>
                 </div>
               </div>
 
+              {/* Ism va Familiya */}
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-gray-700 flex items-center gap-1.5">
-                  <User size={13} className="text-[#e8175d]"/> {t.auth_name}
+                  <User size={13} className="text-[#e8175d]"/> Ism va Familiyangiz <span className="text-[#e8175d]">*</span>
                 </label>
                 <Input
                   value={form.name}
                   onChange={(e) => setForm((curr) => ({ ...curr, name: e.target.value }))}
-                  placeholder={t.auth_name_placeholder}
+                  placeholder="Masalan: Dilshod Rahimov"
                   required
                   className="h-11 rounded-xl border-gray-200 bg-[#fbfaf8] focus:bg-white text-sm"
                 />
+              </div>
+
+              {/* Telefon raqam & Shahar */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-gray-700 block">Telefon raqamingiz</label>
+                  <Input
+                    value={form.phone}
+                    onChange={(e) => setForm((curr) => ({ ...curr, phone: e.target.value }))}
+                    placeholder="+998 90 123 45 67"
+                    className="h-11 rounded-xl border-gray-200 bg-[#fbfaf8] focus:bg-white text-sm"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-gray-700 block">Yashash shahringiz</label>
+                  <select
+                    value={form.city}
+                    onChange={(e) => setForm((curr) => ({ ...curr, city: e.target.value }))}
+                    className="h-11 w-full rounded-xl border border-gray-200 bg-[#fbfaf8] focus:bg-white px-3 text-sm text-gray-800"
+                  >
+                    <option value="Toshkent">Toshkent</option>
+                    <option value="Samarqand">Samarqand</option>
+                    <option value="Buxoro">Buxoro</option>
+                    <option value="Xiva">Xiva</option>
+                    <option value="Farg'ona">Farg'ona</option>
+                    <option value="Nukus">Nukus</option>
+                  </select>
+                </div>
               </div>
             </>
           )}
