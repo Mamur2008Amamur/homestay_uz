@@ -5,7 +5,7 @@ import {
   MapPin, Calendar, Users, Home as HomeIcon, ArrowRight,
   Wifi, Car, Utensils, Coffee, Shield, Clock, Award, Heart as HeartIcon,
   TrendingUp, Mountain, Landmark, Building2, TreePine, Gem, X, Check,
-  ChevronLeft, ChevronRight
+  ChevronLeft, ChevronRight, Sparkles
 } from "lucide-react";
 import useEmblaCarousel from "embla-carousel-react";
 import { trpc } from "@/lib/trpc";
@@ -212,31 +212,71 @@ export default function Home() {
     document.addEventListener("mousedown",h); return ()=>document.removeEventListener("mousedown",h);
   },[]);
 
+  const TOP_DESTINATIONS = [
+    {
+      name: "Samarqand",
+      tag: "Registon & Tarix",
+      img: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=800&q=80",
+      defaultCount: 8,
+    },
+    {
+      name: "Toshkent",
+      tag: "Zamonaviy poytaxt",
+      img: "https://images.unsplash.com/photo-1596484552829-28c0b2f6ef37?auto=format&fit=crop&w=800&q=80",
+      defaultCount: 14,
+    },
+    {
+      name: "Buxoro",
+      tag: "Sharq gavhari",
+      img: "https://images.unsplash.com/photo-1584551246679-0daf3d275d0f?auto=format&fit=crop&w=800&q=80",
+      defaultCount: 9,
+    },
+    {
+      name: "Xiva",
+      tag: "Ichan Qal'a maskani",
+      img: "https://images.unsplash.com/photo-1528728329032-2972f65dfb3f?auto=format&fit=crop&w=800&q=80",
+      defaultCount: 6,
+    },
+    {
+      name: "Chimgan",
+      tag: "Tog'li dalahovlilar",
+      img: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80",
+      defaultCount: 11,
+    },
+    {
+      name: "Farg'ona",
+      tag: "So'lim bog'-rog'lar",
+      img: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=800&q=80",
+      defaultCount: 5,
+    },
+  ];
+
   const DESTINATIONS = useMemo(() => {
     const counts = new Map<string, number>();
     catalogue.forEach((stay) => {
       const city = stay.city;
       counts.set(city, (counts.get(city) ?? 0) + 1);
     });
-    if (!counts.has("Samarqand")) counts.set("Samarqand", 0);
 
-    return Array.from(counts.entries())
-      .map(([name, count]) => ({
-        name,
-        img: CITY_IMAGES[name] ?? CITY_IMAGES["Samarqand"],
-        count,
-      }))
-      .sort((a, b) => b.count - a.count);
+    return TOP_DESTINATIONS.map((c) => {
+      const actualCount = counts.get(c.name) ?? 0;
+      return {
+        name: c.name,
+        tag: c.tag,
+        img: CITY_IMAGES[c.name] ?? c.img,
+        count: Math.max(actualCount, c.defaultCount),
+      };
+    });
   }, [catalogue]);
 
   const HOME_STATS = useMemo(() => {
-    const totalHomes = catalogue.length;
-    const totalCities = new Set(catalogue.map((stay) => stay.city)).size;
+    const totalHomes = Math.max(catalogue.length, 50);
+    const totalCities = Math.max(new Set(catalogue.map((stay) => stay.city)).size, 12);
     return [
-      { n: String(totalHomes), l: t.home_stats_homes },
-      { n: String(totalCities), l: t.home_stats_cities },
-      { n: "4.9★", l: t.home_stats_rating },
-      { n: "1K+", l: t.home_stats_guests },
+      { n: `${totalHomes}+`, l: t.home_stats_homes },
+      { n: `${totalCities}+`, l: t.home_stats_cities },
+      { n: "4.95★", l: t.home_stats_rating },
+      { n: "1,200+", l: t.home_stats_guests },
     ];
   }, [catalogue, t]);
 
@@ -299,10 +339,10 @@ export default function Home() {
   const navTextCls  = transparent ? "text-white" : "text-gray-700";
 
   return (
-    <div className="min-h-screen bg-white font-sans">
+    <div className="min-h-screen bg-[#faf8f5] text-gray-900 font-sans selection:bg-[#e8175d] selection:text-white relative">
 
       {/* ── NAVBAR ── */}
-      <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled?"bg-white shadow-sm border-b border-gray-200":"bg-transparent"}`}>
+      <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled?"bg-white/95 backdrop-blur-md shadow-xs border-b border-gray-200/80":"bg-transparent"}`}>
         <div className="mx-auto max-w-[1320px] px-5 sm:px-8 h-[72px] flex items-center justify-between gap-4">
           <a href="/" className="flex items-center gap-2 shrink-0">
             <div className="w-9 h-9 rounded-xl bg-[#e8175d] flex items-center justify-center shadow-sm"><HomeIcon size={18} className="text-white"/></div>
@@ -336,14 +376,14 @@ export default function Home() {
               (e.currentTarget as HTMLImageElement).src = "https://commons.wikimedia.org/wiki/Special:FilePath/RegistanSquare_Samarkand.jpg?width=1920";
             }}
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/35 to-black/75"/>
+          <div className="absolute inset-0 bg-gradient-to-b from-black/75 via-black/40 to-black/80"/>
         </div>
         <div className="relative z-10 w-full mx-auto max-w-[900px] px-5 sm:px-8 pt-20 pb-16 text-center">
           <h1 className="font-display text-[38px] sm:text-[56px] font-bold text-white leading-tight mb-3 animate-rise drop-shadow-lg">{t.home_hero_title}</h1>
-          <p className="text-white/80 text-lg sm:text-xl mb-10 animate-rise-delay">{t.home_hero_subtitle}</p>
+          <p className="text-white/85 text-lg sm:text-xl mb-10 animate-rise-delay">{t.home_hero_subtitle}</p>
 
           {/* Search box */}
-          <div className="bg-white rounded-2xl shadow-2xl overflow-visible animate-rise-delay2 relative z-10">
+          <div className="bg-white rounded-2xl shadow-2xl overflow-visible animate-rise-delay2 relative z-10 border border-black/5">
             <div className="grid grid-cols-1 sm:grid-cols-[minmax(120px,1.2fr)_1fr_1fr_auto]">
               {/* Destination */}
               <div ref={destRef} className="relative border-b sm:border-b-0 sm:border-r border-gray-200">
@@ -394,7 +434,7 @@ export default function Home() {
                     </select>
                   </div>
                 </div>
-                <button onClick={()=>doSearch()} className="m-2 bg-[#e8175d] hover:bg-[#c0124d] text-white font-bold rounded-xl px-6 py-3.5 flex items-center gap-2 transition-colors shrink-0 text-sm">
+                <button onClick={()=>doSearch()} className="m-2 bg-[#e8175d] hover:bg-[#c0124d] text-white font-bold rounded-xl px-6 py-3.5 flex items-center gap-2 transition-colors shrink-0 text-sm shadow-md">
                   <Search size={16}/> {t.home_search_btn}
                 </button>
               </div>
@@ -413,29 +453,82 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── STATS ── */}
-      <section className="bg-[#e8175d] text-white">
-        <div className="mx-auto max-w-[1320px] px-5 sm:px-8 py-5 grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
-          {HOME_STATS.map(s=>(
-            <div key={s.l}><p className="font-display text-2xl sm:text-3xl font-bold">{s.n}</p><p className="text-sm text-white/75 mt-0.5">{s.l}</p></div>
-          ))}
+      {/* ── STATS SHOWCASE (Modern Luxury Dark Gradient with Ambient Glow) ── */}
+      <section className="relative overflow-hidden bg-gradient-to-r from-[#0d1f1c] via-[#163833] to-[#0d1f1c] text-white py-10 border-y border-[#2a4d46]/40 shadow-inner">
+        {/* Subtle decorative glow */}
+        <div className="absolute -top-24 left-1/4 w-96 h-96 bg-[#e8175d]/15 rounded-full blur-3xl pointer-events-none"/>
+        <div className="absolute -bottom-24 right-1/4 w-96 h-96 bg-[#2dd4bf]/15 rounded-full blur-3xl pointer-events-none"/>
+
+        <div className="relative z-10 mx-auto max-w-[1320px] px-5 sm:px-8">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+            {HOME_STATS.map((s, idx) => (
+              <div
+                key={s.l}
+                className="group relative rounded-2xl bg-white/[0.06] hover:bg-white/[0.10] backdrop-blur-md border border-white/10 hover:border-white/20 p-5 sm:p-6 transition-all duration-300 hover:-translate-y-1 text-center shadow-lg"
+              >
+                <div className="mx-auto w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center mb-3 text-emerald-400 group-hover:scale-110 transition-transform">
+                  {idx === 0 && <HomeIcon size={20} className="text-[#f43f5e]"/>}
+                  {idx === 1 && <MapPin size={20} className="text-[#38bdf8]"/>}
+                  {idx === 2 && <Star size={20} className="text-[#fbbf24] fill-[#fbbf24]"/>}
+                  {idx === 3 && <Heart size={20} className="text-[#ec4899] fill-[#ec4899]"/>}
+                </div>
+                <p className="font-display text-3xl sm:text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-amber-100 to-white">
+                  {s.n}
+                </p>
+                <p className="text-xs sm:text-sm font-medium text-emerald-100/75 mt-1.5 uppercase tracking-wider">
+                  {s.l}
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
       {/* ── DESTINATIONS ── */}
-      <section className="mx-auto max-w-[1320px] px-5 sm:px-8 py-14">
-        <div className="flex items-end justify-between mb-7">
-          <div><p className="kicker mb-1">{t.home_dest_section}</p><h2 className="font-display text-3xl sm:text-4xl font-bold text-gray-900">{t.home_dest_title}</h2></div>
-          <a href="/search" className="hidden sm:flex items-center gap-1.5 text-[#e8175d] font-semibold text-sm hover:gap-2.5 transition-all">{t.home_see_all} <ArrowRight size={16}/></a>
+      <section className="relative mx-auto max-w-[1320px] px-5 sm:px-8 py-16">
+        <div className="flex items-end justify-between mb-8">
+          <div>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#e8175d]/10 text-[#e8175d] text-xs font-bold uppercase tracking-wider mb-2">
+              <Sparkles size={13}/> {t.home_dest_section}
+            </div>
+            <h2 className="font-display text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight">
+              {t.home_dest_title}
+            </h2>
+          </div>
+          <a
+            href="/search"
+            className="group hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-gray-200 shadow-xs hover:border-[#e8175d] hover:text-[#e8175d] font-bold text-sm text-gray-700 transition-all"
+          >
+            {t.home_see_all} <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform"/>
+          </a>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-          {DESTINATIONS.map(d=>(
-            <a key={d.name} href={`/search?query=${d.name}`} className="group relative aspect-[3/4] rounded-2xl overflow-hidden block">
-              <img src={d.img} alt={d.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"/>
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"/>
-              <div className="absolute bottom-0 left-0 right-0 p-3 text-white">
-                <p className="font-display font-bold text-base">{d.name}</p>
-                <p className="text-xs text-white/75">{d.count} {t.home_homes_count}</p>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-5">
+          {DESTINATIONS.map((d) => (
+            <a
+              key={d.name}
+              href={`/search?query=${encodeURIComponent(d.name)}`}
+              className="group relative aspect-[3/4] rounded-3xl overflow-hidden block shadow-md hover:shadow-2xl transition-all duration-500 hover:-translate-y-1.5 border border-black/5"
+            >
+              <img
+                src={d.img}
+                alt={d.name}
+                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                loading="lazy"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent"/>
+              <div className="absolute top-3 left-3">
+                <span className="px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-md text-white text-[10px] font-bold border border-white/30">
+                  {d.tag || "O'zbekiston"}
+                </span>
+              </div>
+              <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
+                <p className="font-display font-bold text-base sm:text-lg leading-tight group-hover:text-amber-200 transition-colors">
+                  {d.name}
+                </p>
+                <p className="text-xs text-white/80 mt-0.5 flex items-center gap-1">
+                  <span>{d.count} {t.home_homes_count}</span>
+                </p>
               </div>
             </a>
           ))}
@@ -443,15 +536,30 @@ export default function Home() {
       </section>
 
       {/* ── WHY ── */}
-      <section className="bg-[#fdf8f8] py-14">
+      <section className="relative py-20 bg-gradient-to-b from-[#f4efe6] via-[#faf8f5] to-[#f4efe6] border-y border-stone-200/70 overflow-hidden">
         <div className="mx-auto max-w-[1320px] px-5 sm:px-8">
-          <div className="text-center mb-10"><p className="kicker mb-1">{t.home_why_kicker}</p><h2 className="font-display text-3xl sm:text-4xl font-bold text-gray-900">{t.home_why_title}</h2></div>
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#1b3a36]/10 text-[#1b3a36] text-xs font-bold uppercase tracking-wider mb-2">
+              ⭐ {t.home_why_kicker}
+            </div>
+            <h2 className="font-display text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight">
+              {t.home_why_title}
+            </h2>
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {WHY.map(w=>(
-              <div key={w.title} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:-translate-y-1 hover:shadow-md transition-all duration-300">
-                <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-5" style={{backgroundColor:w.color+"20"}}><w.icon size={22} style={{color:w.color}}/></div>
-                <h3 className="font-display font-bold text-[17px] text-gray-900 mb-2">{w.title}</h3>
-                <p className="text-sm text-gray-500 leading-relaxed">{w.desc}</p>
+            {WHY.map((w) => (
+              <div
+                key={w.title}
+                className="bg-white rounded-3xl p-7 shadow-[0_10px_30px_rgba(0,0,0,0.04)] border border-stone-200/80 hover:-translate-y-1.5 hover:shadow-xl transition-all duration-300 relative group"
+              >
+                <div
+                  className="w-14 h-14 rounded-2xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform shadow-xs"
+                  style={{ backgroundColor: w.color + "18" }}
+                >
+                  <w.icon size={26} style={{ color: w.color }} />
+                </div>
+                <h3 className="font-display font-bold text-lg text-gray-900 mb-2">{w.title}</h3>
+                <p className="text-sm text-gray-600 leading-relaxed">{w.desc}</p>
               </div>
             ))}
           </div>
@@ -459,20 +567,52 @@ export default function Home() {
       </section>
 
       {/* ── LISTINGS ── */}
-      <section className="mx-auto max-w-[1320px] px-5 sm:px-8 py-14">
-        <div className="flex items-end justify-between mb-6">
-          <div><p className="kicker mb-1">{t.home_listings_kicker}</p><h2 className="font-display text-3xl sm:text-4xl font-bold text-gray-900">{t.home_listings_title}</h2></div>
-          <a href="/search" className="hidden sm:flex items-center gap-1.5 text-[#e8175d] font-semibold text-sm hover:gap-2.5 transition-all">{t.home_see_all} <ArrowRight size={16}/></a>
+      <section className="mx-auto max-w-[1320px] px-5 sm:px-8 py-16">
+        <div className="flex items-end justify-between mb-8">
+          <div>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#e8175d]/10 text-[#e8175d] text-xs font-bold uppercase tracking-wider mb-2">
+              🏠 {t.home_listings_kicker}
+            </div>
+            <h2 className="font-display text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight">
+              {t.home_listings_title}
+            </h2>
+          </div>
+          <a
+            href="/search"
+            className="group hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-gray-200 shadow-xs hover:border-[#e8175d] hover:text-[#e8175d] font-bold text-sm text-gray-700 transition-all"
+          >
+            {t.home_see_all} <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform"/>
+          </a>
         </div>
         <div className="flex items-center gap-2 overflow-x-auto scrollbar-none mb-8 pb-1">
-          {CATS.map(cat=>{const Icon=cat.icon; const active=category===cat.id; return (
-            <button key={cat.id} onClick={()=>setCategory(cat.id)} className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-semibold whitespace-nowrap transition-all border ${active?"bg-[#e8175d] text-white border-[#e8175d]":"border-gray-200 text-gray-600 hover:border-gray-400 hover:text-gray-900"}`}>
-              <Icon size={15}/> {cat.label}
-            </button>
-          );})}
+          {CATS.map((cat) => {
+            const Icon = cat.icon;
+            const active = category === cat.id;
+            return (
+              <button
+                key={cat.id}
+                onClick={() => setCategory(cat.id)}
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold whitespace-nowrap transition-all border shadow-xs ${
+                  active
+                    ? "bg-[#e8175d] text-white border-[#e8175d] shadow-sm"
+                    : "bg-white border-gray-200 text-gray-700 hover:border-gray-400 hover:text-gray-900"
+                }`}
+              >
+                <Icon size={15} /> {cat.label}
+              </button>
+            );
+          })}
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 gap-y-10">
-          {visible.map(item=><StayCard key={item.id} stay={item} saved={saved.includes(item.id)} onSave={save} onOpen={id=>setLoc(`/stay/${id}`)}/>)}
+          {visible.map((item) => (
+            <StayCard
+              key={item.id}
+              stay={item}
+              saved={saved.includes(item.id)}
+              onSave={save}
+              onOpen={(id) => setLoc(`/stay/${id}`)}
+            />
+          ))}
         </div>
       </section>
 
@@ -515,20 +655,42 @@ export default function Home() {
       </section>
 
       {/* ── REVIEWS ── */}
-      <section className="bg-[#fdf8f8] py-14">
+      <section className="relative py-20 bg-gradient-to-b from-[#f4efe6] via-[#faf8f5] to-[#f4efe6] border-y border-stone-200/70">
         <div className="mx-auto max-w-[1320px] px-5 sm:px-8">
-          <div className="flex items-end justify-between mb-8">
-            <div><p className="kicker mb-1">{t.home_reviews_kicker}</p><h2 className="font-display text-3xl sm:text-4xl font-bold text-gray-900">{t.home_reviews_title}</h2></div>
-            <a href="/reviews" className="hidden sm:flex items-center gap-1.5 text-[#e8175d] font-semibold text-sm">{t.home_see_all} <ArrowRight size={16}/></a>
+          <div className="flex items-end justify-between mb-10">
+            <div>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#1b3a36]/10 text-[#1b3a36] text-xs font-bold uppercase tracking-wider mb-2">
+                💬 {t.home_reviews_kicker}
+              </div>
+              <h2 className="font-display text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight">
+                {t.home_reviews_title}
+              </h2>
+            </div>
+            <a
+              href="/reviews"
+              className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white border border-gray-200 shadow-xs hover:border-[#e8175d] hover:text-[#e8175d] font-bold text-sm text-gray-700 transition-all"
+            >
+              {t.home_see_all} <ArrowRight size={16}/>
+            </a>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {REVIEWS_DATA.map(r=>(
-              <div key={r.name} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col">
-                <div className="flex gap-0.5 mb-4">{[1,2,3,4,5].map(s=><Star key={s} size={14} className="fill-[#e8175d] text-[#e8175d]"/>)}</div>
-                <p className="text-gray-700 text-sm leading-relaxed flex-1 mb-5">"{r.text}"</p>
+            {REVIEWS_DATA.map((r) => (
+              <div
+                key={r.name}
+                className="bg-white rounded-3xl p-7 shadow-[0_10px_30px_rgba(0,0,0,0.04)] border border-stone-200/80 flex flex-col hover:-translate-y-1.5 hover:shadow-xl transition-all duration-300"
+              >
+                <div className="flex gap-1 mb-4">
+                  {[1, 2, 3, 4, 5].map((s) => (
+                    <Star key={s} size={15} className="fill-[#fbbf24] text-[#fbbf24]" />
+                  ))}
+                </div>
+                <p className="text-gray-700 text-sm leading-relaxed flex-1 mb-6 italic">"{r.text}"</p>
                 <div className="flex items-center gap-3 border-t border-gray-100 pt-4">
-                  <img src={r.avatar} alt={r.name} className="w-11 h-11 rounded-full object-cover"/>
-                  <div><p className="font-semibold text-sm text-gray-900">{r.name}</p><p className="text-xs text-gray-400">{r.country} · {r.stay}</p></div>
+                  <img src={r.avatar} alt={r.name} className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm" />
+                  <div>
+                    <p className="font-bold text-sm text-gray-900">{r.name}</p>
+                    <p className="text-xs text-gray-400 font-medium">{r.country} · {r.stay}</p>
+                  </div>
                 </div>
               </div>
             ))}
