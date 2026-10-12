@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="160" height="160">
+  <defs>
+    <linearGradient id="bgGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e8175d"/>
+      <stop offset="100%" stop-color="#990f3d"/>
+    </linearGradient>
+  </defs>
+  <circle cx="80" cy="80" r="80" fill="url(#bgGrad2)"/>
+  <circle cx="80" cy="80" r="77" fill="none" stroke="#ffffff" stroke-opacity="0.2" stroke-width="3"/>
+  <!-- Hair -->
+  <path d="M48 60 C48 35 112 35 112 60 C112 85 106 100 106 110 C100 85 96 75 96 75 C96 75 64 75 64 75 C64 75 60 85 54 110 C54 100 48 85 48 60 Z" fill="#2d1c15"/>
+  <!-- Head -->
+  <ellipse cx="80" cy="68" rx="24" ry="27" fill="#fcd7b6"/>
+  <!-- Eyes -->
+  <circle cx="71" cy="67" r="2.5" fill="#333333"/>
+  <circle cx="89" cy="67" r="2.5" fill="#333333"/>
+  <!-- Smile -->
+  <path d="M73 78 Q80 84 87 78" fill="none" stroke="#c4506c" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- Dress -->
+  <path d="M30 145 C34 112 55 102 80 102 C105 102 126 112 130 145 Z" fill="#ffffff"/>
+  <path d="M68 102 L80 120 L92 102 Z" fill="#fcd7b6"/>
+</svg>

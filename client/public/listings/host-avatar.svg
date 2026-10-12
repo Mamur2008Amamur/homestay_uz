@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="160" height="160">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#183a37"/>
+      <stop offset="100%" stop-color="#0f2523"/>
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e8175d"/>
+      <stop offset="100%" stop-color="#c0124d"/>
+    </linearGradient>
+  </defs>
+  <!-- Background circle -->
+  <circle cx="80" cy="80" r="80" fill="url(#bgGrad)"/>
+  
+  <!-- Subtle border ring -->
+  <circle cx="80" cy="80" r="77" fill="none" stroke="#ffffff" stroke-opacity="0.15" stroke-width="3"/>
+  
+  <!-- Do'ppi / Headwear or hair silhouette -->
+  <path d="M54 48 C54 36 106 36 106 48 Z" fill="url(#accentGrad)"/>
+  <rect x="52" y="47" width="56" height="5" rx="2" fill="#ffffff" opacity="0.9"/>
+  
+  <!-- Head -->
+  <ellipse cx="80" cy="65" rx="26" ry="29" fill="#fcd7b6"/>
+  
+  <!-- Face details: eyes, friendly smile -->
+  <circle cx="70" cy="63" r="2.5" fill="#333333"/>
+  <circle cx="90" cy="63" r="2.5" fill="#333333"/>
+  <!-- Smile -->
+  <path d="M72 73 Q80 81 88 73" fill="none" stroke="#b35432" stroke-width="2.5" stroke-linecap="round"/>
+  
+  <!-- Shoulders / Traditional Uzbek chapan style collar -->
+  <path d="M26 142 C30 108 52 98 80 98 C108 98 130 108 134 142 Z" fill="#244d49"/>
+  <!-- Inner shirt / yakhtak -->
+  <path d="M68 98 L80 120 L92 98 Z" fill="#ffffff"/>
+  <!-- Collar stripe -->
+  <path d="M66 98 L80 124 L94 98" fill="none" stroke="url(#accentGrad)" stroke-width="3" stroke-linecap="round"/>
+</svg>

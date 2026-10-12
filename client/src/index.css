@@ -1,0 +1,35 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@custom-variant dark (&:is(.dark *));
+@theme inline {
+  --font-sans: "DM Sans", sans-serif;
+  --font-display: "Plus Jakarta Sans", sans-serif;
+  --radius-sm: calc(var(--radius) - 4px); --radius-md: calc(var(--radius) - 2px); --radius-lg: var(--radius); --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background); --color-foreground: var(--foreground); --color-card: var(--card); --color-card-foreground: var(--card-foreground); --color-popover: var(--popover); --color-popover-foreground: var(--popover-foreground); --color-primary: var(--primary); --color-primary-foreground: var(--primary-foreground); --color-secondary: var(--secondary); --color-secondary-foreground: var(--secondary-foreground); --color-muted: var(--muted); --color-muted-foreground: var(--muted-foreground); --color-accent: var(--accent); --color-accent-foreground: var(--accent-foreground); --color-destructive: var(--destructive); --color-destructive-foreground: var(--destructive-foreground); --color-border: var(--border); --color-input: var(--input); --color-ring: var(--ring);
+}
+:root { --primary: #183a37; --primary-foreground: #fff; --radius: .7rem; --background: #fbfaf7; --foreground: #183a37; --card: #fff; --card-foreground: #183a37; --popover: #fff; --popover-foreground: #183a37; --secondary: #f0eee9; --secondary-foreground: #183a37; --muted: #f0eee9; --muted-foreground: #727971; --accent: #e89570; --accent-foreground: #183a37; --destructive: #b64444; --destructive-foreground: #fff; --border: #e7e3db; --input: #e7e3db; --ring: #e89570; }
+.dark { --background: #112d2b; --foreground: #f7f5f0; --card: #183a37; --card-foreground: #f7f5f0; --popover: #183a37; --popover-foreground: #f7f5f0; --secondary: #25544f; --secondary-foreground: #f7f5f0; --muted: #25544f; --muted-foreground: #c6d1cc; --accent: #e89570; --accent-foreground: #183a37; --border: #35625d; --input: #35625d; --ring: #e89570; }
+@layer base { * { @apply border-border outline-ring/50; } html { scroll-behavior: smooth; } body { @apply bg-background text-foreground; font-family: "DM Sans", sans-serif; background: linear-gradient(180deg, #f8f4ef 0%, #f3efe9 100%); } button:not(:disabled), [role="button"]:not([aria-disabled="true"]), a[href], input, select { @apply cursor-pointer; } }
+@layer components {
+  .container { width: 100%; margin: auto; padding-left: 1.25rem; padding-right: 1.25rem; }
+  .font-display { font-family: "Plus Jakarta Sans", sans-serif; }
+  .section-kicker { @apply text-[11px] font-bold uppercase tracking-[.18em] text-[#dc8a67]; }
+  .section-title { @apply mt-3 font-display text-[32px] font-semibold leading-[1.08] tracking-[-.045em] text-[#183a37] sm:text-[42px]; }
+  .round-arrow { @apply grid h-10 w-10 place-items-center rounded-full border border-[#d9d5cc] text-[#183a37] transition hover:border-[#183a37] hover:bg-white; }
+  .feature-box { @apply rounded-[22px] border border-[#ebe7df] bg-white p-7 transition hover:-translate-y-1 hover:shadow-[0_14px_35px_rgba(27,48,43,.08)]; }
+  .feature-icon { @apply grid h-11 w-11 place-items-center rounded-2xl bg-[#fff0e8] text-[#dc8a67]; }
+  .feature-box h3 { @apply mt-5 font-display text-lg font-bold; }
+  .feature-box p { @apply mt-2 text-sm leading-6 text-[#727971]; }
+  .scrollbar-none::-webkit-scrollbar { display: none; }
+  .scrollbar-none { scrollbar-width: none; }
+}
+@keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+.animate-rise { animation: rise .65s cubic-bezier(.23,1,.32,1) both; }
+.animate-rise-delay { animation: rise .7s .12s cubic-bezier(.23,1,.32,1) both; }
+@media (min-width: 640px) { .container { padding-left: 1.5rem; padding-right: 1.5rem; } }
+@media (min-width: 1024px) { .container { padding-left: 2.5rem; padding-right: 2.5rem; max-width: 1320px; } }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+
+.value-card { border-top: 2px solid #4d91a5; padding: 20px 4px 0; }
+.value-card h3 { margin-top: 16px; font-family: "Plus Jakarta Sans", sans-serif; font-weight: 700; color: #273c3a; }
+.value-card p { margin-top: 8px; max-width: 300px; font-size: 14px; line-height: 1.6; color: #727974; }
