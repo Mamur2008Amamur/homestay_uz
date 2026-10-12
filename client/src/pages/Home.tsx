@@ -206,15 +206,13 @@ export default function Home() {
     window.addEventListener("scroll",h); return ()=>window.removeEventListener("scroll",h);
   },[]);
 
-  // Yangi kelgan foydalanuvchiga ro'yxatdan o'tishni tavsiya qilish
+  // Yangi kelgan va hali kirmagan foydalanuvchiga ro'yxatdan o'tish oynasini ochish
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const hasPrompted = sessionStorage.getItem("uyjoy_prompted_register");
-    if (!isAuthenticated && !hasPrompted) {
-      sessionStorage.setItem("uyjoy_prompted_register", "1");
+    if (!isAuthenticated) {
       const timer = setTimeout(() => {
         startLogin("register");
-      }, 1500);
+      }, 500);
       return () => clearTimeout(timer);
     }
   }, [isAuthenticated]);
@@ -342,14 +340,14 @@ export default function Home() {
       <section className="relative min-h-[600px] sm:min-h-[680px] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0">
           <img
-            src="https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=1920&q=80"
-            alt="Uzbekistan"
-            className="w-full h-full object-cover"
+            src="https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=2400&q=85"
+            alt="Samarqand Registon maydoni, O'zbekiston"
+            className="w-full h-full object-cover scale-105 filter brightness-95"
             onError={(e) => {
-              (e.currentTarget as HTMLImageElement).src = "https://images.unsplash.com/photo-1596484552834-6a58f850e0a1?auto=format&fit=crop&w=1920&q=80";
+              (e.currentTarget as HTMLImageElement).src = "https://commons.wikimedia.org/wiki/Special:FilePath/RegistanSquare_Samarkand.jpg?width=1920";
             }}
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/65"/>
+          <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/35 to-black/75"/>
         </div>
         <div className="relative z-10 w-full mx-auto max-w-[900px] px-5 sm:px-8 pt-20 pb-16 text-center">
           <h1 className="font-display text-[38px] sm:text-[56px] font-bold text-white leading-tight mb-3 animate-rise drop-shadow-lg">{t.home_hero_title}</h1>
