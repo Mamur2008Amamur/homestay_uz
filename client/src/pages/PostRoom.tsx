@@ -13,6 +13,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { money } from "@/lib/money";
 import { addUserStay, DEFAULT_STAY_IMAGE, nightlyFromWeekly } from "@/data/stays";
 import { useStays } from "@/data/useStays";
+import { LocationPicker } from "@/components/LocationPicker";
 
 const CITIES = [
   "Samarqand",
@@ -110,6 +111,8 @@ export default function PostRoom() {
   const [desc, setDesc]               = useState("");
   const [phone, setPhone]             = useState("");
   const [telegram, setTelegram]       = useState("");
+  const [lat, setLat]                 = useState<number>(39.6542);
+  const [lng, setLng]                 = useState<number>(66.9597);
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>(["wifi", "kitchen"]);
   const [imageList, setImageList]     = useState<string[]>([]);
   const [customUrl, setCustomUrl]     = useState("");
@@ -253,6 +256,8 @@ export default function PostRoom() {
       guestCount: guests,
       homeType,
       hostAvatar: finalHostAvatar,
+      lat,
+      lng,
     };
 
     // Save locally immediately so it instantly appears in catalogue
@@ -263,6 +268,8 @@ export default function PostRoom() {
       homeTypeUz: payload.homeType,
       address: payload.address,
       description: payload.description,
+      lat: payload.lat,
+      lng: payload.lng,
       images: finalImages,
       amenities: selectedAmenities,
       phone1: payload.phone1,
@@ -404,21 +411,32 @@ export default function PostRoom() {
                 </div>
               </div>
 
-              <div>
-                <label className="text-xs font-semibold text-gray-700 mb-1.5 block">
-                  {t.post_field_address} <span className="text-[#e8175d]">*</span>
-                </label>
-                <div className="relative">
-                  <MapPin size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#e8175d]"/>
-                  <input
-                    value={address}
-                    onChange={(e) => setAddress(e.target.value)}
-                    placeholder={t.post_field_address_ph}
-                    required
-                    className={`${field} pl-10`}
-                  />
+                <div>
+                  <label className="text-xs font-semibold text-gray-700 mb-1.5 block">
+                    {t.post_field_address} <span className="text-[#e8175d]">*</span>
+                  </label>
+                  <div className="relative">
+                    <MapPin size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#e8175d]"/>
+                    <input
+                      value={address}
+                      onChange={(e) => setAddress(e.target.value)}
+                      placeholder={t.post_field_address_ph}
+                      required
+                      className={`${field} pl-10`}
+                    />
+                  </div>
                 </div>
-              </div>
+
+                {/* Real Interactive Map Location Picker */}
+                <LocationPicker
+                  city={city}
+                  initialLat={lat}
+                  initialLng={lng}
+                  onLocationSelect={(newLat, newLng) => {
+                    setLat(newLat);
+                    setLng(newLng);
+                  }}
+                />
 
               <div>
                 <label className="text-xs font-semibold text-gray-700 mb-1.5 block">{t.post_field_guests}</label>

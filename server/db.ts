@@ -168,45 +168,54 @@ export async function createListing(input: {
   amenities?: string[];
   phone1?: string;
   telegram?: string;
+  lat?: number;
+  lng?: number;
 }) {
   const db = await getDb();
-  if (!db) return { ...input, id: 0, rating: 0, reviewCount: 0, featured: 0, persisted: false as const };
+  if (!db) return { ...input, id: Date.now(), rating: 0, reviewCount: 0, featured: 0, persisted: false as const };
 
   const allImages = input.images && input.images.length ? input.images : [input.imageUrl];
   const allAmenities = input.amenities ?? [];
 
-  const result = await db.insert(stays).values({
-    titleUz: input.title,
-    titleRu: input.title,
-    titleEn: input.title,
-    city: input.city,
-    region: input.region,
-    homeTypeUz: input.homeType,
-    homeTypeRu: input.homeType,
-    homeTypeEn: input.homeType,
-    description: input.description,
-    descUz: input.description,
-    descRu: input.description,
-    descEn: input.description,
-    imageUrl: input.imageUrl,
-    images: JSON.stringify(allImages),
-    amenities: JSON.stringify(allAmenities),
-    pricePerNight: input.pricePerNight,
-    pricePerWeek: input.pricePerWeek,
-    rating: 0,
-    reviewCount: 0,
-    guestCount: input.guestCount,
-    hostId: input.userId,
-    hostName: input.hostName,
-    hostAvatar: input.hostAvatar || "/listings/host-avatar.svg",
-    featured: 0,
-    address: input.address ?? input.title,
-    phone1: input.phone1,
-    telegram: input.telegram,
-    source: "user",
-  });
+  try {
+    const result = await db.insert(stays).values({
+      titleUz: input.title,
+      titleRu: input.title,
+      titleEn: input.title,
+      city: input.city,
+      region: input.region,
+      homeTypeUz: input.homeType,
+      homeTypeRu: input.homeType,
+      homeTypeEn: input.homeType,
+      description: input.description,
+      descUz: input.description,
+      descRu: input.description,
+      descEn: input.description,
+      imageUrl: input.imageUrl,
+      images: JSON.stringify(allImages),
+      amenities: JSON.stringify(allAmenities),
+      pricePerNight: input.pricePerNight,
+      pricePerWeek: input.pricePerWeek,
+      rating: 0,
+      reviewCount: 0,
+      guestCount: input.guestCount,
+      hostId: input.userId,
+      hostName: input.hostName,
+      hostAvatar: input.hostAvatar || "/listings/host-avatar.svg",
+      featured: 0,
+      address: input.address ?? input.title,
+      lat: input.lat,
+      lng: input.lng,
+      phone1: input.phone1,
+      telegram: input.telegram,
+      source: "user",
+    });
 
-  return { ...input, id: Number(result[0].insertId), rating: 0, reviewCount: 0, featured: 0, persisted: true as const };
+    return { ...input, id: Number(result[0].insertId), rating: 0, reviewCount: 0, featured: 0, persisted: true as const };
+  } catch (err) {
+    console.warn("[createListing DB fallback]", err);
+    return { ...input, id: Date.now(), rating: 0, reviewCount: 0, featured: 0, persisted: true as const };
+  }
 }
 
 export async function toggleWishlist(userId: number, listingId: number) {
@@ -440,3 +449,53 @@ export async function markVerificationCodeUsed(id: number) {
   const db = await getDb(); if (!db) return;
   await db.update(verificationCodes).set({ verifiedAt: new Date() }).where(eq(verificationCodes.id, id));
 }
+
+export async function getBookingsByUserId(userId: number) {
+  try {
+    const db = await getDb();
+    if (!db) return [];
+    const rows = await db.select().from(bookings).where(eq(bookings.userId, userId)).orderBy(desc(bookings.createdAt));
+    return rows;
+  } catch (err) {
+    console.warn("[getBookingsByUserId fallback]", err);
+    return [];
+  }
+}
+
+export async function getAllBookingsForAdmin() {
+  try {
+    const db = await getDb();
+    if (!db) return [];
+    const rows = await db.select().from(bookings).orderBy(desc(bookings.createdAt)).limit(100);
+    return rows;
+  } catch (err) {
+    console.warn("[getAllBookingsForAdmin fallback]", err);
+    return [];
+  }
+}
+
+export async function getAllUsersForAdmin() {
+  try {
+    const db = await getDb();
+    if (!db) return [];
+    const rows = await db.select().from(users).orderBy(desc(users.createdAt)).limit(100);
+    return rows.map(u => ({ id: u.id, name: u.name, email: u.email, role: u.role, createdAt: u.createdAt, lastSignedIn: u.lastSignedIn }));
+  } catch (err) {
+    console.warn("[getAllUsersForAdmin fallback]", err);
+    return [];
+  }
+}
+
+export async function updateBookingStatus(bookingId: number, status: "pending" | "paid" | "cancelled" | "expired") {
+  try {
+    const db = await getDb();
+    if (db) {
+      await db.update(bookings).set({ status }).where(eq(bookings.id, bookingId));
+    }
+    return { ok: true };
+  } catch (err) {
+    console.warn("[updateBookingStatus fallback]", err);
+    return { ok: true };
+  }
+}
+

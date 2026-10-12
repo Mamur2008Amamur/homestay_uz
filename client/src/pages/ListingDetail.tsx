@@ -9,6 +9,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { money } from "@/lib/money";
 import { stayAmenities, stayDesc, stayWeekPrice } from "@/data/stays";
 import { useStays } from "@/data/useStays";
+import { HostChatModal } from "@/components/HostChatModal";
 import NotFound from "./NotFound";
 
 const nts = (a:string,b:string) => Math.max(1,Math.ceil((new Date(b).getTime()-new Date(a).getTime())/86400000));
@@ -17,7 +18,7 @@ export default function ListingDetail() {
   const { t, lang } = useLanguage();
   const [,params] = useRoute("/stay/:id");
   const [,navigate] = useLocation();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const id = Number(params?.id);
   const catalogue = useStays();
 
@@ -37,6 +38,8 @@ export default function ListingDetail() {
     hostName: raw.hostName,
     hostAvatar: raw.hostAvatar,
     address: raw.address,
+    lat: raw.lat,
+    lng: raw.lng,
     email: raw.email,
     phone1: raw.phone1,
     phone2: raw.phone2,
@@ -71,6 +74,11 @@ export default function ListingDetail() {
   const svcFee    = Math.round(baseTotal * 0.05);
   const grandTotal = baseTotal + svcFee;
 
+  const [guestPhone, setGuestPhone] = useState(() => {
+    if (typeof window !== "undefined") return localStorage.getItem("uyjoy_user_phone") || "";
+    return "";
+  });
+
   const sendCode = () => {
     if (!isAuthenticated) { toast(t.detail_login_code); startLogin(); return; }
     if (!email) { toast(t.detail_enter_email); return; }
@@ -81,10 +89,26 @@ export default function ListingDetail() {
     if (!stay) return;
     if (!isAuthenticated) { toast(t.detail_login_book); startLogin(); return; }
     if (!checkIn||!checkOut) { toast(t.detail_select_dates); return; }
-    if (!verified) { toast(t.detail_verify_first); return; }
-    booking.mutate({ stayId: stay.id, email, checkIn: new Date(checkIn), checkOut: new Date(checkOut), guests },
-      { onSuccess:()=>{ toast.success(t.detail_request_sent,{description:t.detail_host_will_confirm}); navigate(`/payment?listingId=${stay.id}&checkIn=${checkIn}&checkOut=${checkOut}&guests=${guests}&total=${grandTotal}`); },
-        onError:e=>toast.error(e.message) });
+    const bookingEmail = email || user?.email || "mehmon@uyjoy.uz";
+    const bookingPhone = guestPhone || (typeof window !== "undefined" ? localStorage.getItem("uyjoy_user_phone") || "" : "");
+
+    booking.mutate({
+      stayId: stay.id,
+      email: bookingEmail,
+      guestName: user?.name || "Hurmatli mehmon",
+      phone: bookingPhone,
+      checkIn: new Date(checkIn),
+      checkOut: new Date(checkOut),
+      guests,
+    }, {
+      onSuccess: () => {
+        toast.success("Uyingiz muvaffaqiyatli bron qilindi!", {
+          description: "Mezbon va Telegram botiga darhol xabar yuborildi. Buyurtmangiz tasdiqlash uchun qabul qilindi.",
+        });
+        navigate(`/payment?listingId=${stay.id}&checkIn=${checkIn}&checkOut=${checkOut}&guests=${guests}&total=${grandTotal}`);
+      },
+      onError: (e) => toast.error(e.message),
+    });
   };
 
   const hasAmenity = (key:string) => (raw ? stayAmenities(raw).includes(key) : true);
@@ -306,15 +330,32 @@ export default function ListingDetail() {
               )}
             </div>
 
-            {/* Location */}
+            {/* Real Interactive Map Location */}
             <div>
               <h2 className="text-xl font-bold mb-4">{t.ld_location_title}</h2>
-              <div className="flex items-center gap-2 text-gray-600 mb-3"><MapPin size={16} className="text-[#e8175d] shrink-0"/><span className="text-sm">{stay.address ?? `${stay.city}, ${stay.region}`}, O'zbekiston</span></div>
-              <div className="rounded-2xl overflow-hidden bg-gray-100 h-[220px] flex items-center justify-center border border-gray-200">
-                <div className="text-center text-gray-400">
-                  <MapPin size={32} className="mx-auto mb-2 text-[#e8175d]"/>
-                  <p className="text-sm font-medium">{stay.city} {t.ld_location_city}</p>
-                  <p className="text-xs mt-1">{t.ld_location_note}</p>
+              <div className="flex items-center gap-2 text-gray-600 mb-3">
+                <MapPin size={16} className="text-[#e8175d] shrink-0"/>
+                <span className="text-sm font-medium">{stay.address ?? `${stay.city}, ${stay.region}`}, O'zbekiston</span>
+              </div>
+              <div className="rounded-2xl overflow-hidden bg-gray-100 h-[280px] border border-gray-200 relative shadow-xs">
+                {stay.lat && stay.lng ? (
+                  <iframe
+                    title="Xaritadagi joylashuvi"
+                    src={`https://www.openstreetmap.org/export/embed.html?bbox=${stay.lng - 0.01}%2C${stay.lat - 0.008}%2C${stay.lng + 0.01}%2C${stay.lat + 0.008}&layer=mapnik&marker=${stay.lat}%2C${stay.lng}`}
+                    className="w-full h-full border-0"
+                    loading="lazy"
+                  />
+                ) : (
+                  <iframe
+                    title="Shahar xaritasi"
+                    src={`https://www.openstreetmap.org/export/embed.html?bbox=66.93%2C39.63%2C66.98%2C39.67&layer=mapnik&marker=39.6542%2C66.9597`}
+                    className="w-full h-full border-0"
+                    loading="lazy"
+                  />
+                )}
+                <div className="absolute bottom-3 left-3 bg-white/90 backdrop-blur-xs px-3 py-1.5 rounded-lg text-xs font-semibold text-gray-800 shadow-xs flex items-center gap-1.5">
+                  <MapPin size={13} className="text-[#e8175d]" />
+                  <span>{stay.city} марказига яқин</span>
                 </div>
               </div>
             </div>
@@ -363,33 +404,49 @@ export default function ListingDetail() {
                   </div>
                 )}
 
-                <div className="space-y-2">
-                  <input type="email" value={email} onChange={e=>{setEmail(e.target.value);setVerified(false);setCodeSent(false);setCode("");}}
-                    placeholder={t.detail_email} className="w-full border border-gray-300 rounded-xl p-3 text-sm outline-none focus:border-[#e8175d] transition-all"/>
-                  {codeSent && !verified && (
-                    <div className="border border-gray-200 rounded-xl p-3 bg-gray-50">
-                      <p className="text-xs text-gray-500 mb-2">{t.detail_code_hint}</p>
-                      <div className="flex gap-2">
-                        <input value={code} onChange={e=>setCode(e.target.value.replace(/\D/g,"").slice(0,6))} inputMode="numeric" placeholder="000000"
-                          className="flex-1 border border-gray-300 rounded-lg p-2.5 text-sm text-center tracking-widest font-mono outline-none focus:border-[#e8175d]"/>
-                        <button onClick={confirmCode} disabled={verifyCode.isPending} className="bg-gray-900 text-white px-4 rounded-lg text-sm font-semibold hover:bg-gray-800 transition-colors disabled:opacity-50">{t.detail_verify}</button>
-                      </div>
-                    </div>
-                  )}
-                  {verified
-                    ? <p className="text-sm font-semibold text-green-600 flex items-center gap-1.5"><Check size={14}/> {t.detail_verified_email}</p>
-                    : <button onClick={sendCode} disabled={reqCode.isPending} className="w-full text-sm font-semibold underline text-gray-600 hover:text-gray-900 py-1 transition-colors">
-                        {reqCode.isPending ? t.detail_sending : t.detail_send_code}
-                      </button>
-                  }
+                <div className="space-y-2.5">
+                  <div>
+                    <label className="text-[11px] font-semibold text-gray-700 block mb-1">Bog'lanish uchun telefon</label>
+                    <input
+                      type="tel"
+                      value={guestPhone}
+                      onChange={e=>setGuestPhone(e.target.value)}
+                      placeholder="+998 90 123 45 67"
+                      className="w-full border border-gray-300 rounded-xl p-3 text-sm outline-none focus:border-[#e8175d] transition-all bg-[#faf8f6] focus:bg-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[11px] font-semibold text-gray-700 block mb-1">Email manzil</label>
+                    <input
+                      type="email"
+                      value={email || user?.email || ""}
+                      onChange={e=>setEmail(e.target.value)}
+                      placeholder="Emailingizni kiriting"
+                      className="w-full border border-gray-300 rounded-xl p-3 text-sm outline-none focus:border-[#e8175d] transition-all bg-[#faf8f6] focus:bg-white"
+                    />
+                  </div>
                 </div>
 
-                <button onClick={reserve} disabled={booking.isPending||!verified}
-                  className="w-full py-4 rounded-xl text-white font-bold text-base transition-opacity disabled:opacity-50"
-                  style={{background:"linear-gradient(to right,#E61E4D 0%,#E31C5F 50%,#D70466 100%)"}}>
-                  {booking.isPending ? t.ld_sending : t.ld_reserve_btn}
+                <button
+                  onClick={reserve}
+                  disabled={booking.isPending || nights <= 0}
+                  className="w-full py-4 rounded-xl text-white font-bold text-base transition-all disabled:opacity-50 shadow-md hover:opacity-95"
+                  style={{background:"linear-gradient(to right,#E61E4D 0%,#E31C5F 50%,#D70466 100%)"}}
+                >
+                  {booking.isPending ? "Bron qilinmoqda..." : t.ld_reserve_btn}
                 </button>
-                <p className="text-center text-xs text-gray-400">{t.detail_no_payment}</p>
+                <p className="text-center text-xs text-gray-400">
+                  ⚡️ Bron qilinganda uy egasining Telegramiga darhol xabar boradi
+                </p>
+
+                {/* Live Chat with Host */}
+                <HostChatModal
+                  stayId={stay.id}
+                  hostName={stay.hostName}
+                  hostAvatar={stay.hostAvatar}
+                  stayTitle={stay.title}
+                />
               </div>
             </div>
           </div>

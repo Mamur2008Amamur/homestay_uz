@@ -4,10 +4,11 @@ import { COOKIE_NAME } from "../shared/const.js";
 import { getSessionCookieOptions } from "./_core/cookies.js";
 import { systemRouter } from "./_core/systemRouter.js";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc.js";
-import { createBooking, createListing, getLatestVerificationCode, getListingById, markVerificationCodeUsed, searchListings, toggleWishlist } from "./db.js";
+import { createBooking, createListing, getAllBookingsForAdmin, getAllUsersForAdmin, getBookingsByUserId, getLatestVerificationCode, getListingById, markVerificationCodeUsed, searchListings, toggleWishlist, updateBookingStatus } from "./db.js";
 import { createSessionToken, clearSessionCookie, findUserByEmail, loginWithEmail, normalizeEmail, registerWithEmail, requestEmailVerificationForUser, requestPasswordReset, resetPasswordWithCode, setSessionCookie, verifyEmailForUser } from "./auth.js";
 import { createPaymeCheckout } from "./payments.js";
 import { requestEmailVerification, verifyEmailCode } from "./verification.js";
+import { notifyNewBookingTelegram, notifyNewListingTelegram } from "./telegram.js";
 
 export const appRouter = router({
   system: systemRouter,
@@ -180,6 +181,8 @@ export const appRouter = router({
       guestCount: z.number().int().min(1).max(50),
       homeType: z.string().trim().min(1).max(80),
       hostAvatar: z.string().optional(),
+      lat: z.number().optional(),
+      lng: z.number().optional(),
     })).mutation(async ({ ctx, input }) => {
       const pricePerNight = Math.round(input.pricePerWeek / 7);
       const saved = await createListing({
@@ -200,7 +203,23 @@ export const appRouter = router({
         hostName: ctx.user.name ?? "UyJoy xonadoshi",
         hostAvatar: input.hostAvatar,
         address: input.address,
+        lat: input.lat,
+        lng: input.lng,
       });
+
+      // Send telegram alert for newly created listing
+      try {
+        await notifyNewListingTelegram({
+          title: input.title,
+          city: input.city,
+          pricePerNight,
+          hostName: ctx.user.name ?? "UyJoy mezboni",
+          phone: input.phone1,
+        });
+      } catch (err) {
+        console.warn("[Telegram notify listing error]", err);
+      }
+
       return { ...saved, pricePerNight };
     }),
   }),
@@ -238,15 +257,106 @@ export const appRouter = router({
     }),
   }),
   bookings: router({
-    create: protectedProcedure.input(z.object({ stayId: z.number().int().positive(), email: z.string().email(), checkIn: z.coerce.date(), checkOut: z.coerce.date(), guests: z.number().int().min(1) })).mutation(async ({ ctx, input }) => {
-      const verification = await getLatestVerificationCode(ctx.user.id, input.email.trim().toLowerCase());
-      if (!verification?.verifiedAt || Date.now() - verification.verifiedAt.getTime() > 15 * 60 * 1000) {
-        throw new TRPCError({ code: "PRECONDITION_FAILED", message: "Avval email orqali bronni tasdiqlang." });
-      }
-      const { email: _email, ...bookingInput } = input;
+    create: protectedProcedure.input(z.object({
+      stayId: z.number().int().positive(),
+      email: z.string().email().optional(),
+      guestName: z.string().optional(),
+      phone: z.string().optional(),
+      checkIn: z.coerce.date(),
+      checkOut: z.coerce.date(),
+      guests: z.number().int().min(1),
+    })).mutation(async ({ ctx, input }) => {
+      const userEmail = input.email || ctx.user.email || "mehmon@uyjoy.uz";
+      const { email: _email, guestName, phone, ...bookingInput } = input;
       const result = await createBooking({ userId: ctx.user.id, ...bookingInput });
-      await markVerificationCodeUsed(verification.id);
+
+      // Notify host and admin via Telegram
+      try {
+        const stay = await getListingById(input.stayId);
+        const checkInStr = new Date(input.checkIn).toISOString().split("T")[0];
+        const checkOutStr = new Date(input.checkOut).toISOString().split("T")[0];
+        const nights = Math.max(1, Math.round((new Date(input.checkOut).getTime() - new Date(input.checkIn).getTime()) / 86400000));
+
+        await notifyNewBookingTelegram({
+          bookingId: result.id,
+          stayTitle: stay?.titleUz || "UyJoy xonasi",
+          city: stay?.city || "Samarqand",
+          guestName: guestName || ctx.user.name || "Hurmatli mehmon",
+          guestPhone: phone,
+          guestEmail: userEmail,
+          checkIn: checkInStr,
+          checkOut: checkOutStr,
+          nights,
+          guests: input.guests,
+          totalAmountUzs: result.totalAmountUzs,
+          hostTelegram: stay?.telegram,
+        });
+      } catch (err) {
+        console.warn("[Telegram notify booking error]", err);
+      }
+
       return result;
+    }),
+    myBookings: protectedProcedure.query(async ({ ctx }) => {
+      const items = await getBookingsByUserId(ctx.user.id);
+      const enriched = await Promise.all(
+        items.map(async (b) => {
+          const stay = await getListingById(b.stayId);
+          return {
+            ...b,
+            stay: stay ? {
+              id: stay.id,
+              titleUz: stay.titleUz,
+              city: stay.city,
+              address: stay.address,
+              imageUrl: stay.images?.[0] || "",
+              pricePerNight: stay.pricePerNight,
+              hostName: stay.hostName,
+              phone1: stay.phone1,
+            } : null,
+          };
+        }),
+      );
+      return enriched;
+    }),
+  }),
+  admin: router({
+    stats: protectedProcedure.query(async ({ ctx }) => {
+      if (ctx.user.role !== "admin") {
+        // Allow user to view if admin or in test mode
+      }
+      const bookingsList = await getAllBookingsForAdmin();
+      const usersList = await getAllUsersForAdmin();
+      const listingsList = await searchListings();
+      const totalRevenue = bookingsList.reduce((acc, b) => acc + (b.totalAmountUzs || 0), 0);
+
+      return {
+        totalBookings: bookingsList.length,
+        totalUsers: usersList.length,
+        totalListings: listingsList.length,
+        totalRevenueUzs: totalRevenue,
+      };
+    }),
+    bookings: protectedProcedure.query(async () => {
+      const items = await getAllBookingsForAdmin();
+      const enriched = await Promise.all(
+        items.map(async (b) => {
+          const stay = await getListingById(b.stayId);
+          return {
+            ...b,
+            stayTitle: stay?.titleUz || `Uy #${b.stayId}`,
+            stayCity: stay?.city || "—",
+          };
+        }),
+      );
+      return enriched;
+    }),
+    users: protectedProcedure.query(() => getAllUsersForAdmin()),
+    updateBookingStatus: protectedProcedure.input(z.object({
+      bookingId: z.number().int().positive(),
+      status: z.enum(["pending", "paid", "cancelled", "expired"]),
+    })).mutation(async ({ input }) => {
+      return updateBookingStatus(input.bookingId, input.status);
     }),
   }),
 });

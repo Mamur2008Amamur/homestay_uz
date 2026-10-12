@@ -59,6 +59,14 @@ export default function HomestayHeader({ overlay = false }: Props) {
               </div>
             )}
           </div>
+          {isAuthenticated && (
+            <button
+              onClick={() => navigate("/my-bookings")}
+              className="rounded-full border border-[#dedbd6] bg-white px-3.5 py-1.5 text-xs font-bold text-[#273c3a] shadow-xs hover:border-[#d52a75] hover:text-[#d52a75] transition-all"
+            >
+              Mening buyurtmalarim
+            </button>
+          )}
           {isAuthenticated ? (
             <button onClick={() => logout()} className="flex items-center gap-2 rounded-full border border-[#dedbd6] pl-2 pr-4 py-1.5 text-xs font-bold text-[#273c3a] transition hover:border-[#d52a75]">
               {typeof window !== "undefined" && localStorage.getItem("uyjoy_user_avatar") ? (

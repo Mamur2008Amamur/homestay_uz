@@ -13,6 +13,7 @@ import InfoPage from "./pages/InfoPage";
 import PaymentPage from "./pages/PaymentPage";
 import HostProfile from "./pages/HostProfile";
 import AdminPanel from "./pages/AdminPanel";
+import MyBookings from "./pages/MyBookings";
 import NotFound from "./pages/NotFound";
 
 function Router() {
@@ -25,6 +26,7 @@ function Router() {
       <Route path="/payment" component={PaymentPage} />
       <Route path="/host/:id" component={HostProfile} />
       <Route path="/admin" component={AdminPanel} />
+      <Route path="/my-bookings" component={MyBookings} />
       <Route path="/about">   <InfoPage type="about" />   </Route>
       <Route path="/hosting"> <InfoPage type="hosting" /> </Route>
       <Route path="/inspire"> <InfoPage type="inspire" /> </Route>
