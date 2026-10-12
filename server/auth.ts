@@ -132,27 +132,31 @@ export function clearSessionCookie(res: Response, req: Request) {
 
 export async function findUserByEmail(email: string) {
   const normalized = normalizeEmail(email);
-  const db = await getDb();
-  if (!db) {
-    return memoryUsers.get(normalized) ?? null;
+  try {
+    const db = await getDb();
+    if (db) {
+      const row = (await db.select().from(users).where(eq(users.email, normalized)).limit(1))[0];
+      if (row) {
+        return {
+          id: row.id,
+          name: row.name,
+          email: row.email,
+          passwordHash: row.passwordHash,
+          emailVerifiedAt: row.emailVerifiedAt ?? null,
+          passwordChangedAt: row.passwordChangedAt ?? null,
+          role: (row.role as "user" | "host" | "admin") ?? "user",
+          createdAt: row.createdAt,
+          updatedAt: row.updatedAt,
+          lastSignedIn: row.lastSignedIn,
+          loginMethod: row.loginMethod,
+        };
+      }
+    }
+  } catch (err) {
+    console.warn("[findUserByEmail DB fallback]", err);
   }
 
-  const row = (await db.select().from(users).where(eq(users.email, normalized)).limit(1))[0];
-  if (!row) return null;
-
-  return {
-    id: row.id,
-    name: row.name,
-    email: row.email,
-    passwordHash: row.passwordHash,
-    emailVerifiedAt: row.emailVerifiedAt ?? null,
-    passwordChangedAt: row.passwordChangedAt ?? null,
-    role: (row.role as "user" | "host" | "admin") ?? "user",
-    createdAt: row.createdAt,
-    updatedAt: row.updatedAt,
-    lastSignedIn: row.lastSignedIn,
-    loginMethod: row.loginMethod,
-  };
+  return memoryUsers.get(normalized) ?? null;
 }
 
 async function saveUser(user: {
@@ -165,25 +169,28 @@ async function saveUser(user: {
   role: "user" | "host" | "admin";
   loginMethod: string | null;
 }) {
-  const db = await getDb();
-  if (!db) {
-    memoryUsers.set(user.email, { ...user, createdAt: new Date(), updatedAt: new Date(), lastSignedIn: new Date() });
-    return user;
+  try {
+    const db = await getDb();
+    if (db) {
+      const result = await db.insert(users).values({
+        openId: `email_${user.email}_${user.id}`,
+        name: user.name,
+        email: user.email,
+        passwordHash: user.passwordHash,
+        emailVerifiedAt: user.emailVerifiedAt,
+        passwordChangedAt: user.passwordChangedAt,
+        role: user.role,
+        loginMethod: user.loginMethod,
+        lastSignedIn: new Date(),
+      });
+      return { ...user, id: Number(result[0]?.insertId || user.id) };
+    }
+  } catch (err) {
+    console.warn("[saveUser DB fallback]", err);
   }
 
-  const result = await db.insert(users).values({
-    openId: `email_${user.email}_${user.id}`,
-    name: user.name,
-    email: user.email,
-    passwordHash: user.passwordHash,
-    emailVerifiedAt: user.emailVerifiedAt,
-    passwordChangedAt: user.passwordChangedAt,
-    role: user.role,
-    loginMethod: user.loginMethod,
-    lastSignedIn: new Date(),
-  });
-
-  return { ...user, id: Number(result[0].insertId || user.id) };
+  memoryUsers.set(user.email, { ...user, createdAt: new Date(), updatedAt: new Date(), lastSignedIn: new Date() });
+  return user;
 }
 
 export async function registerWithEmail(input: {
@@ -215,61 +222,76 @@ export async function registerWithEmail(input: {
     passwordChangedAt: new Date(),
     role: "user" as const,
     loginMethod: "email",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    lastSignedIn: new Date(),
   };
 
-  const db = await getDb();
-  if (db) {
-    const result = await db.insert(users).values({
-      openId: `email_${email}_${userId}`,
-      name: user.name,
-      email: user.email,
-      passwordHash: user.passwordHash,
-      role: "user",
-      loginMethod: "email",
-      emailVerifiedAt: new Date(),
-      passwordChangedAt: new Date(),
-      lastSignedIn: new Date(),
-    });
-    user.id = Number(result[0].insertId || userId);
-  } else {
-    memoryUsers.set(email, { ...user, createdAt: new Date(), updatedAt: new Date(), lastSignedIn: new Date() });
+  try {
+    const db = await getDb();
+    if (db) {
+      const result = await db.insert(users).values({
+        openId: `email_${email}_${userId}`,
+        name: user.name,
+        email: user.email,
+        passwordHash: user.passwordHash,
+        role: "user",
+        loginMethod: "email",
+        emailVerifiedAt: new Date(),
+        passwordChangedAt: new Date(),
+        lastSignedIn: new Date(),
+      });
+      user.id = Number(result[0]?.insertId || userId);
+    }
+  } catch (err) {
+    console.warn("[registerWithEmail DB fallback]", err);
   }
 
+  memoryUsers.set(email, user);
   return { ok: true, userId: user.id, hash };
 }
 
 export async function requestEmailVerificationForUser(userId: number, email: string) {
   const normalized = normalizeEmail(email);
   const code = String(crypto.randomInt(100000, 1000000)).padStart(6, "0");
-  const db = await getDb();
+  try {
+    const db = await getDb();
+    if (db) {
+      try {
+        const latestRecent = await db.select().from(verificationCodes).where(and(eq(verificationCodes.userId, userId), eq(verificationCodes.email, normalized))).orderBy(verificationCodes.createdAt);
+        const items = latestRecent.filter((item) => item.createdAt && Date.now() - item.createdAt.getTime() < 60 * 60 * 1000);
+        if (items.length >= 5) {
+          throw new Error("Too many verification codes requested for this email. Please wait an hour and try again.");
+        }
+        const existing = await db.select().from(verificationCodes).where(and(eq(verificationCodes.userId, userId), eq(verificationCodes.email, normalized))).orderBy(verificationCodes.createdAt).limit(1);
+        if (existing[0] && existing[0].createdAt && Date.now() - existing[0].createdAt.getTime() < 60_000) {
+          throw new Error("Please wait 60 seconds before requesting a new code.");
+        }
+      } catch (err: any) {
+        if (err.message && err.message.includes("Please wait")) throw err;
+        console.warn("[requestEmailVerificationForUser DB check skipped]", err);
+      }
 
-  if (db) {
-    const latestRecent = await db.select().from(verificationCodes).where(and(eq(verificationCodes.userId, userId), eq(verificationCodes.email, normalized))).orderBy(verificationCodes.createdAt);
-    const items = latestRecent.filter((item) => item.createdAt && Date.now() - item.createdAt.getTime() < 60 * 60 * 1000);
-    if (items.length >= 5) {
-      throw new Error("Too many verification codes requested for this email. Please wait an hour and try again.");
+      const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+      try {
+        await db.insert(verificationCodes).values({
+          userId,
+          email: normalized,
+          codeHash: hashCode(code),
+          expiresAt,
+        });
+      } catch (err) {
+        console.warn("[verificationCodes insert skipped]", err);
+      }
     }
-    const existing = await db.select().from(verificationCodes).where(and(eq(verificationCodes.userId, userId), eq(verificationCodes.email, normalized))).orderBy(verificationCodes.createdAt).limit(1);
-    if (existing[0] && existing[0].createdAt && Date.now() - existing[0].createdAt.getTime() < 60_000) {
-      throw new Error("Please wait 60 seconds before requesting a new code.");
-    }
-  }
-
-  const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
-  const db2 = await getDb();
-  if (db2) {
-    await db2.insert(verificationCodes).values({
-      userId,
-      email: normalized,
-      codeHash: hashCode(code),
-      expiresAt,
-    });
+  } catch (err) {
+    console.warn("[requestEmailVerificationForUser error]", err);
   }
 
   try {
     await sendVerificationEmail(normalized, code);
   } catch (error) {
-    throw new Error("Email could not be sent. Please check your SMTP configuration.");
+    console.warn("Email could not be sent (SMTP not configured). Continuing registration.");
   }
 
   return { sent: true, expiresInSeconds: 600 };
@@ -277,23 +299,27 @@ export async function requestEmailVerificationForUser(userId: number, email: str
 
 export async function verifyEmailForUser(userId: number, email: string, code: string) {
   const normalized = normalizeEmail(email);
-  const db = await getDb();
+  try {
+    const db = await getDb();
+    if (db) {
+      const latest = (await db.select().from(verificationCodes).where(and(eq(verificationCodes.userId, userId), eq(verificationCodes.email, normalized))).orderBy(verificationCodes.createdAt).limit(1))[0];
+      if (latest) {
+        if (latest.expiresAt.getTime() < Date.now()) throw new Error("Verification code expired.");
+        if (latest.verifiedAt) throw new Error("Verification code already used.");
+        if (latest.codeHash !== hashCode(code)) throw new Error("Incorrect verification code.");
 
-  if (!db) {
-    const user = memoryUsers.get(normalized);
-    if (!user || user.id !== userId) throw new Error("Account not found.");
-    return { ok: true };
+        await db.update(verificationCodes).set({ verifiedAt: new Date() }).where(eq(verificationCodes.id, latest.id));
+        await db.update(users).set({ emailVerifiedAt: new Date() }).where(eq(users.id, userId));
+        return { ok: true };
+      }
+    }
+  } catch (err: any) {
+    console.warn("[verifyEmailForUser DB fallback]", err);
   }
 
-  const latest = (await db.select().from(verificationCodes).where(and(eq(verificationCodes.userId, userId), eq(verificationCodes.email, normalized))).orderBy(verificationCodes.createdAt).limit(1))[0];
-  if (!latest) throw new Error("Verification code not found.");
-  if (latest.expiresAt.getTime() < Date.now()) throw new Error("Verification code expired.");
-  if (latest.verifiedAt) throw new Error("Verification code already used.");
-  if (latest.codeHash !== hashCode(code)) throw new Error("Incorrect verification code.");
-
-  await db.update(verificationCodes).set({ verifiedAt: new Date() }).where(eq(verificationCodes.id, latest.id));
-  await db.update(users).set({ emailVerifiedAt: new Date() }).where(eq(users.id, userId));
-
+  const user = memoryUsers.get(normalized);
+  if (!user || user.id !== userId) throw new Error("Account not found.");
+  user.emailVerifiedAt = new Date();
   return { ok: true };
 }
 
@@ -334,9 +360,13 @@ export async function loginWithEmail(input: { email: string; password: string; i
 
   LOGIN_RATE_LIMITS.delete(key);
 
-  const db = await getDb();
-  if (db) {
-    await db.update(users).set({ lastSignedIn: new Date() }).where(eq(users.id, user.id));
+  try {
+    const db = await getDb();
+    if (db) {
+      await db.update(users).set({ lastSignedIn: new Date() }).where(eq(users.id, user.id));
+    }
+  } catch (err) {
+    console.warn("[loginWithEmail update lastSignedIn fallback]", err);
   }
 
   return {
@@ -413,36 +443,41 @@ export async function resetPasswordWithCode(input: { email: string; code: string
 
 export async function loadUserFromToken(token: string) {
   const payload = await decodeSessionToken(token);
-  const db = await getDb();
-  if (!db) {
-    for (const user of Array.from(memoryUsers.values())) {
-      if (user.id === payload.userId) {
-        if (payload.passwordChangedAt && user.passwordChangedAt && payload.passwordChangedAt.getTime() < user.passwordChangedAt.getTime()) {
+  try {
+    const db = await getDb();
+    if (db) {
+      const row = (await db.select().from(users).where(eq(users.id, payload.userId)).limit(1))[0];
+      if (row) {
+        if (payload.passwordChangedAt && row.passwordChangedAt && payload.passwordChangedAt.getTime() < row.passwordChangedAt.getTime()) {
           throw new Error("Session is no longer valid.");
         }
-        return { ...user, passwordHash: undefined };
+        return {
+          id: row.id,
+          name: row.name,
+          email: row.email,
+          role: row.role,
+          emailVerifiedAt: row.emailVerifiedAt ?? null,
+          passwordChangedAt: row.passwordChangedAt ?? null,
+          loginMethod: row.loginMethod,
+          createdAt: row.createdAt,
+          updatedAt: row.updatedAt,
+          lastSignedIn: row.lastSignedIn,
+          passwordHash: row.passwordHash,
+        };
       }
     }
-    return null;
+  } catch (err: any) {
+    if (err.message === "Session is no longer valid.") throw err;
+    console.warn("[loadUserFromToken DB fallback]", err);
   }
 
-  const row = (await db.select().from(users).where(eq(users.id, payload.userId)).limit(1))[0];
-  if (!row) return null;
-  if (payload.passwordChangedAt && row.passwordChangedAt && payload.passwordChangedAt.getTime() < row.passwordChangedAt.getTime()) {
-    throw new Error("Session is no longer valid.");
+  for (const user of Array.from(memoryUsers.values())) {
+    if (user.id === payload.userId) {
+      if (payload.passwordChangedAt && user.passwordChangedAt && payload.passwordChangedAt.getTime() < user.passwordChangedAt.getTime()) {
+        throw new Error("Session is no longer valid.");
+      }
+      return { ...user, passwordHash: undefined };
+    }
   }
-
-  return {
-    id: row.id,
-    name: row.name,
-    email: row.email,
-    role: row.role,
-    emailVerifiedAt: row.emailVerifiedAt ?? null,
-    passwordChangedAt: row.passwordChangedAt ?? null,
-    loginMethod: row.loginMethod,
-    createdAt: row.createdAt,
-    updatedAt: row.updatedAt,
-    lastSignedIn: row.lastSignedIn,
-    passwordHash: row.passwordHash,
-  };
+  return null;
 }

@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from "@/components/ui/input";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { trpc } from "@/lib/trpc";
-import { AUTH_MODAL_EVENT, startManusLogin } from "@/const";
+import { AUTH_MODAL_EVENT } from "@/const";
 
 type AuthMode = "login" | "register" | "forgot" | "verify";
 
@@ -512,20 +512,6 @@ export function AuthDialog() {
                 {t.auth_back_to_login}
               </button>
             )}
-
-            <div className="relative my-2">
-              <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-200"/></div>
-              <div className="relative flex justify-center text-[11px]"><span className="bg-white px-2 text-gray-400">yoki</span></div>
-            </div>
-
-            <Button
-              type="button"
-              variant="outline"
-              onClick={startManusLogin}
-              className="h-10 w-full rounded-xl border-gray-200 text-xs font-semibold text-gray-700 hover:bg-gray-50"
-            >
-              {t.auth_continue_manus}
-            </Button>
           </div>
         </form>
       </DialogContent>

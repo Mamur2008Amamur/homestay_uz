@@ -28,50 +28,68 @@ export const appRouter = router({
       email: z.string().email(),
       password: z.string().min(8).max(128),
     })).mutation(async ({ ctx, input }) => {
-      const result = await registerWithEmail(input);
-      if (!result.ok) {
-        throw new TRPCError({ code: "BAD_REQUEST", message: result.error });
-      }
-
-      const user = await loginWithEmail({ email: input.email, password: input.password, ip: ctx.req.ip || ctx.req.headers["x-forwarded-for"]?.toString() || "unknown" });
-      if (!user.ok || !user.user) {
-        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to create user session." });
-      }
-
       try {
-        await requestEmailVerificationForUser(result.userId, input.email);
-      } catch (e) {
-        console.warn("[Auth] Verification code delivery skipped:", e);
-      }
+        const result = await registerWithEmail(input);
+        if (!result.ok) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: result.error });
+        }
 
-      const token = await createSessionToken({
-        id: user.user.id,
-        role: user.user.role,
-        passwordChangedAt: user.user.passwordChangedAt ?? null,
-      });
-      setSessionCookie(ctx.res, ctx.req, token);
-      return { ok: true, requiresVerification: false, user: user.user };
+        const user = await loginWithEmail({ email: input.email, password: input.password, ip: ctx.req.ip || ctx.req.headers["x-forwarded-for"]?.toString() || "unknown" });
+        if (!user.ok || !user.user) {
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to create user session." });
+        }
+
+        try {
+          await requestEmailVerificationForUser(result.userId, input.email);
+        } catch (e) {
+          console.warn("[Auth] Verification code delivery skipped:", e);
+        }
+
+        const token = await createSessionToken({
+          id: user.user.id,
+          role: user.user.role,
+          passwordChangedAt: user.user.passwordChangedAt ?? null,
+        });
+        setSessionCookie(ctx.res, ctx.req, token);
+        return { ok: true, requiresVerification: false, user: user.user };
+      } catch (err: any) {
+        if (err instanceof TRPCError) throw err;
+        console.error("[register error]", err);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: err.message || "Ro'yxatdan o'tishda xatolik yuz berdi. Iltimos, qaytadan urinib ko'ring.",
+        });
+      }
     }),
     login: publicProcedure.input(z.object({
       email: z.string().email(),
       password: z.string().min(8).max(128),
     })).mutation(async ({ ctx, input }) => {
-      const result = await loginWithEmail({
-        email: input.email,
-        password: input.password,
-        ip: ctx.req.ip || ctx.req.headers["x-forwarded-for"]?.toString() || "unknown",
-      });
-      if (!result.ok || !result.user) {
-        throw new TRPCError({ code: "UNAUTHORIZED", message: result.error || "Invalid email or password." });
-      }
+      try {
+        const result = await loginWithEmail({
+          email: input.email,
+          password: input.password,
+          ip: ctx.req.ip || ctx.req.headers["x-forwarded-for"]?.toString() || "unknown",
+        });
+        if (!result.ok || !result.user) {
+          throw new TRPCError({ code: "UNAUTHORIZED", message: result.error || "Invalid email or password." });
+        }
 
-      const token = await createSessionToken({
-        id: result.user.id,
-        role: result.user.role,
-        passwordChangedAt: result.user.passwordChangedAt ?? null,
-      });
-      setSessionCookie(ctx.res, ctx.req, token);
-      return { ok: true, user: result.user };
+        const token = await createSessionToken({
+          id: result.user.id,
+          role: result.user.role,
+          passwordChangedAt: result.user.passwordChangedAt ?? null,
+        });
+        setSessionCookie(ctx.res, ctx.req, token);
+        return { ok: true, user: result.user };
+      } catch (err: any) {
+        if (err instanceof TRPCError) throw err;
+        console.error("[login error]", err);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: err.message || "Kirishda xatolik yuz berdi. Iltimos, qaytadan urinib ko'ring.",
+        });
+      }
     }),
     verifyEmail: publicProcedure.input(z.object({
       email: z.string().email(),
