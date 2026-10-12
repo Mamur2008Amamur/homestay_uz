@@ -162,6 +162,7 @@ export async function createListing(input: {
   guestCount: number;
   homeType: string;
   hostName: string;
+  hostAvatar?: string;
   address?: string;
   images?: string[];
   amenities?: string[];
@@ -197,6 +198,7 @@ export async function createListing(input: {
     guestCount: input.guestCount,
     hostId: input.userId,
     hostName: input.hostName,
+    hostAvatar: input.hostAvatar || "/listings/host-avatar.svg",
     featured: 0,
     address: input.address ?? input.title,
     phone1: input.phone1,

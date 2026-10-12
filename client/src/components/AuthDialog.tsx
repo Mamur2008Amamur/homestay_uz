@@ -1,5 +1,5 @@
 import { type FormEvent, useEffect, useState } from "react";
-import { Eye, EyeOff, Mail, Lock, User, CheckCircle2, AlertCircle } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, User, CheckCircle2, AlertCircle, Camera } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -15,6 +15,7 @@ type FormState = {
   email: string;
   password: string;
   code: string;
+  avatar: string;
 };
 
 const EMPTY_FORM: FormState = {
@@ -22,6 +23,7 @@ const EMPTY_FORM: FormState = {
   email: "",
   password: "",
   code: "",
+  avatar: "",
 };
 
 export function AuthDialog() {
@@ -62,6 +64,9 @@ export function AuthDialog() {
 
   const registerMutation = trpc.auth.register.useMutation({
     onSuccess: async () => {
+      if (form.avatar) {
+        try { localStorage.setItem("uyjoy_user_avatar", form.avatar); } catch {}
+      }
       await utils.auth.me.invalidate();
       setOpen(false);
       toast.success("Ro'yxatdan o'tish muvaffaqiyatli yakunlandi!", {
@@ -106,6 +111,44 @@ export function AuthDialog() {
     },
     onError: (error) => setNotice(error.message || t.auth_error_generic),
   });
+
+  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const img = new Image();
+      img.src = ev.target?.result as string;
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const maxDim = 240;
+        let w = img.width;
+        let h = img.height;
+        if (w > h) {
+          if (w > maxDim) {
+            h = Math.round((h * maxDim) / w);
+            w = maxDim;
+          }
+        } else {
+          if (h > maxDim) {
+            w = Math.round((w * maxDim) / h);
+            h = maxDim;
+          }
+        }
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, w, h);
+          const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+          setForm((curr) => ({ ...curr, avatar: dataUrl }));
+          try { localStorage.setItem("uyjoy_user_avatar", dataUrl); } catch {}
+          toast.success("Suratingiz tanlandi!");
+        }
+      };
+    };
+    reader.readAsDataURL(file);
+  };
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
@@ -225,18 +268,57 @@ export function AuthDialog() {
 
         <form onSubmit={submit} className="space-y-4 p-5 sm:p-6">
           {mode === "register" && (
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-gray-700 flex items-center gap-1.5">
-                <User size={13} className="text-[#e8175d]"/> {t.auth_name}
-              </label>
-              <Input
-                value={form.name}
-                onChange={(e) => setForm((curr) => ({ ...curr, name: e.target.value }))}
-                placeholder={t.auth_name_placeholder}
-                required
-                className="h-11 rounded-xl border-gray-200 bg-[#fbfaf8] focus:bg-white text-sm"
-              />
-            </div>
+            <>
+              {/* Profile Photo Upload */}
+              <div className="flex items-center gap-3.5 p-3 rounded-2xl bg-[#faf8f6] border border-gray-200">
+                <div className="relative shrink-0">
+                  <img
+                    src={form.avatar || "/listings/host-avatar.svg"}
+                    alt="Profil rasmi"
+                    className="w-14 h-14 rounded-full object-cover border-2 border-white shadow-sm bg-white"
+                  />
+                  <label className="absolute -bottom-1 -right-1 bg-[#e8175d] text-white p-1.5 rounded-full cursor-pointer hover:bg-[#c0124d] transition-colors shadow">
+                    <Camera size={13} />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleAvatarUpload}
+                    />
+                  </label>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-bold text-gray-800">Shaxsiy rasm (Avatar)</p>
+                    {form.avatar && (
+                      <button
+                        type="button"
+                        onClick={() => setForm((c) => ({ ...c, avatar: "" }))}
+                        className="text-[11px] text-red-500 hover:underline"
+                      >
+                        O'chirish
+                      </button>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-gray-500 mt-0.5 leading-snug">
+                    Ushbu rasm uyingizni e'lon qilganda mezbon sifatida ko'rinadi
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-gray-700 flex items-center gap-1.5">
+                  <User size={13} className="text-[#e8175d]"/> {t.auth_name}
+                </label>
+                <Input
+                  value={form.name}
+                  onChange={(e) => setForm((curr) => ({ ...curr, name: e.target.value }))}
+                  placeholder={t.auth_name_placeholder}
+                  required
+                  className="h-11 rounded-xl border-gray-200 bg-[#fbfaf8] focus:bg-white text-sm"
+                />
+              </div>
+            </>
           )}
 
           <div className="space-y-1.5">

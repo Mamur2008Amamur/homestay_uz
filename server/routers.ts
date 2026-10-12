@@ -140,6 +140,7 @@ export const appRouter = router({
       pricePerWeek: z.number().int().positive().max(500_000_000),
       guestCount: z.number().int().min(1).max(50),
       homeType: z.string().trim().min(1).max(80),
+      hostAvatar: z.string().optional(),
     })).mutation(async ({ ctx, input }) => {
       const pricePerNight = Math.round(input.pricePerWeek / 7);
       const saved = await createListing({
@@ -158,6 +159,7 @@ export const appRouter = router({
         guestCount: input.guestCount,
         homeType: input.homeType,
         hostName: ctx.user.name ?? "UyJoy xonadoshi",
+        hostAvatar: input.hostAvatar,
         address: input.address,
       });
       return { ...saved, pricePerNight };

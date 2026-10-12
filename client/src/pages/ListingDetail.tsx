@@ -111,10 +111,10 @@ export default function ListingDetail() {
   ];
 
   const REVIEWS_DATA = [
-    { name:"Émilie D.", country:"Fransiya", avatar:"https://i.pravatar.cc/80?img=5",  date:"Avg 2025", rating:5, text:"Juda iliq mezbon va toza uy. Hayotimning eng yaxshi sayohati!" },
-    { name:"Toshie K.", country:"Yaponiya", avatar:"https://i.pravatar.cc/80?img=15", date:"Iyul 2025", rating:5, text:"Mezbon shaharning yashirin joylarini ko'rsatdi. Tavsiya qilaman!" },
-    { name:"Slavica M.",country:"Serbiya",  avatar:"https://i.pravatar.cc/80?img=22", date:"Iyun 2025", rating:5, text:"Uy nihoyatda qulay, nonushta har kuni tayyor edi. Rahmat!" },
-    { name:"Ahmed S.",  country:"Misr",     avatar:"https://i.pravatar.cc/80?img=60", date:"May 2025",  rating:4, text:"Yaxshi joylashuv, mezbonlar samimiy. Yana kelaman." },
+    { name:"Émilie D.", country:"Fransiya", avatar:"/listings/user-avatar.svg",  date:"Avg 2025", rating:5, text:"Juda iliq mezbon va toza uy. Hayotimning eng yaxshi sayohati!" },
+    { name:"Toshie K.", country:"Yaponiya", avatar:"/listings/user-avatar.svg", date:"Iyul 2025", rating:5, text:"Mezbon shaharning yashirin joylarini ko'rsatdi. Tavsiya qilaman!" },
+    { name:"Slavica M.",country:"Serbiya",  avatar:"/listings/user-avatar.svg", date:"Iyun 2025", rating:5, text:"Uy nihoyatda qulay, nonushta har kuni tayyor edi. Rahmat!" },
+    { name:"Ahmed S.",  country:"Misr",     avatar:"/listings/user-avatar.svg", date:"May 2025",  rating:4, text:"Yaxshi joylashuv, mezbonlar samimiy. Yana kelaman." },
   ];
 
   if (!stay) return <NotFound/>;
@@ -210,7 +210,7 @@ export default function ListingDetail() {
                 <p className="text-gray-500 text-sm mt-1">{stay.guestCount} {t.detail_guests} · {stay.homeType} · {stay.city}</p>
               </div>
               <a href={`/host/${stay.id}`} className="shrink-0">
-                <img src={stay.hostAvatar||"https://i.pravatar.cc/100"} alt={stay.hostName} className="w-16 h-16 rounded-full object-cover border-2 border-gray-100 hover:opacity-80 transition-opacity"/>
+                <img src={stay.hostAvatar||"/listings/host-avatar.svg"} alt={stay.hostName} className="w-16 h-16 rounded-full object-cover border-2 border-gray-100 hover:opacity-80 transition-opacity"/>
               </a>
             </div>
 

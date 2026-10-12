@@ -89,9 +89,9 @@ const HOST_META_TEXT: Record<string, Record<string, { about: string; responseTim
 };
 
 const REVIEWS_DATA = [
-  { name:"Émilie D.",  avatar:"/listings/user-avatar.svg",  date:"Avg 2025",  text:"Juda iliq mezbon, har kuni choy va non taklif qildi.", rating:5 },
-  { name:"Toshie K.",  avatar:"https://i.pravatar.cc/60?img=15", date:"Iyul 2025", text:"Shaharning yashirin joylarini ko'rsatdi. Tavsiya!", rating:5 },
-  { name:"Ahmed S.",   avatar:"https://i.pravatar.cc/60?img=60", date:"May 2025",  text:"Uy toza, qulay va markazga yaqin.", rating:4 },
+  { name:"Émilie D.",  avatar:"/listings/user-avatar.svg", date:"Avg 2025",  text:"Juda iliq mezbon, har kuni choy va non taklif qildi.", rating:5 },
+  { name:"Toshie K.",  avatar:"/listings/user-avatar.svg", date:"Iyul 2025", text:"Shaharning yashirin joylarini ko'rsatdi. Tavsiya!", rating:5 },
+  { name:"Ahmed S.",   avatar:"/listings/user-avatar.svg", date:"May 2025",  text:"Uy toza, qulay va markazga yaqin.", rating:4 },
 ];
 
 const localizedReviews: Record<string, Array<{ name: string; avatar: string; date: string; text: string; rating: number }>> = {
@@ -99,27 +99,27 @@ const localizedReviews: Record<string, Array<{ name: string; avatar: string; dat
   ru: [
     { name:"Émilie D.", avatar:"/listings/user-avatar.svg", date:"Авг 2025", text:"Очень тёплый хозяин, каждый день предлагал чай и свежую выпечку.", rating:5 },
     { name:"Toshie K.", avatar:"/listings/user-avatar.svg", date:"Июль 2025", text:"Показал скрытые уголки города. Очень рекомендую!", rating:5 },
-    { name:"Ahmed S.", avatar:"https://i.pravatar.cc/60?img=60", date:"Май 2025", text:"Дом чистый, удобный и рядом с центром.", rating:4 },
+    { name:"Ahmed S.", avatar:"/listings/user-avatar.svg", date:"Май 2025", text:"Дом чистый, удобный и рядом с центром.", rating:4 },
   ],
   en: [
     { name:"Émilie D.", avatar:"/listings/user-avatar.svg", date:"Aug 2025", text:"The host was incredibly warm and served tea and bread every day.", rating:5 },
-    { name:"Toshie K.", avatar:"https://i.pravatar.cc/60?img=15", date:"July 2025", text:"He showed me the hidden spots of the city. Highly recommended!", rating:5 },
-    { name:"Ahmed S.", avatar:"https://i.pravatar.cc/60?img=60", date:"May 2025", text:"The house was clean, comfortable and close to the center.", rating:4 },
+    { name:"Toshie K.", avatar:"/listings/user-avatar.svg", date:"July 2025", text:"He showed me the hidden spots of the city. Highly recommended!", rating:5 },
+    { name:"Ahmed S.", avatar:"/listings/user-avatar.svg", date:"May 2025", text:"The house was clean, comfortable and close to the center.", rating:4 },
   ],
   ar: [
-    { name:"Émilie D.", avatar:"https://i.pravatar.cc/60?img=5", date:"أغسطس 2025", text:"كان المضيف دافئًا جدًا وقدم الشاي والخبز كل يوم.", rating:5 },
-    { name:"Toshie K.", avatar:"https://i.pravatar.cc/60?img=15", date:"يوليو 2025", text:"أراني الأماكن المخفية في المدينة. أنصح به بشدة!", rating:5 },
-    { name:"Ahmed S.", avatar:"https://i.pravatar.cc/60?img=60", date:"مايو 2025", text:"المنزل كان نظيفًا ومريحًا وقريبًا من المركز.", rating:4 },
+    { name:"Émilie D.", avatar:"/listings/user-avatar.svg", date:"أغسطس 2025", text:"كان المضيف دافئًا جدًا وقدم الشاي والخبز كل يوم.", rating:5 },
+    { name:"Toshie K.", avatar:"/listings/user-avatar.svg", date:"يوليو 2025", text:"أراني الأماكن المخفية في المدينة. أنصح به بشدة!", rating:5 },
+    { name:"Ahmed S.", avatar:"/listings/user-avatar.svg", date:"مايو 2025", text:"المنزل كان نظيفًا ومريحًا وقريبًا من المركز.", rating:4 },
   ],
   tr: [
-    { name:"Émilie D.", avatar:"https://i.pravatar.cc/60?img=5", date:"Ağu 2025", text:"Ev sahibi çok sıcak ve her gün çay ile ekmek ikram etti.", rating:5 },
-    { name:"Toshie K.", avatar:"https://i.pravatar.cc/60?img=15", date:"Temmuz 2025", text:"Şehrin gizli yerlerini gösterdi. Kesinlikle tavsiye ederim!", rating:5 },
-    { name:"Ahmed S.", avatar:"https://i.pravatar.cc/60?img=60", date:"Mayıs 2025", text:"Ev temiz, konforlu ve merkeze yakındı.", rating:4 },
+    { name:"Émilie D.", avatar:"/listings/user-avatar.svg", date:"Ağu 2025", text:"Ev sahibi çok sıcak ve her gün çay ile ekmek ikram etti.", rating:5 },
+    { name:"Toshie K.", avatar:"/listings/user-avatar.svg", date:"Temmuz 2025", text:"Şehrin gizli yerlerini gösterdi. Kesinlikle tavsiye ederim!", rating:5 },
+    { name:"Ahmed S.", avatar:"/listings/user-avatar.svg", date:"Mayıs 2025", text:"Ev temiz, konforlu ve merkeze yakındı.", rating:4 },
   ],
   zh: [
-    { name:"Émilie D.", avatar:"https://i.pravatar.cc/60?img=5", date:"2025年8月", text:"房东非常热情，每天都给我泡茶并提供面包。", rating:5 },
-    { name:"Toshie K.", avatar:"https://i.pravatar.cc/60?img=15", date:"2025年7月", text:"他向我展示了城里隐藏的角落。强烈推荐！", rating:5 },
-    { name:"Ahmed S.", avatar:"https://i.pravatar.cc/60?img=60", date:"2025年5月", text:"房子干净舒适，而且靠近市中心。", rating:4 },
+    { name:"Émilie D.", avatar:"/listings/user-avatar.svg", date:"2025年8月", text:"房东非常热情，每天都给我泡茶并提供面包。", rating:5 },
+    { name:"Toshie K.", avatar:"/listings/user-avatar.svg", date:"2025年7月", text:"他向我展示了城里隐藏的角落。强烈推荐！", rating:5 },
+    { name:"Ahmed S.", avatar:"/listings/user-avatar.svg", date:"2025年5月", text:"房子干净舒适，而且靠近市中心。", rating:4 },
   ],
 };
 

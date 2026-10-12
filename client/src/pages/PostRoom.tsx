@@ -3,7 +3,7 @@ import { useLocation } from "wouter";
 import {
   ArrowLeft, Home as HomeIcon, Check, Star, MapPin, Users, Wallet,
   ImageIcon, Info, Trash2, Plus, Phone, Send, Wifi, Car, Utensils,
-  Tv, Wind, ShieldCheck, Sparkles, Eye, LogIn, ExternalLink,
+  Tv, Wind, ShieldCheck, Sparkles, Eye, LogIn, ExternalLink, Camera,
 } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
@@ -117,6 +117,52 @@ export default function PostRoom() {
   const [error, setError]             = useState("");
   const [createdStayId, setCreatedStayId] = useState<number | null>(null);
 
+  const [hostNameInput, setHostNameInput] = useState("");
+  const [hostAvatar, setHostAvatar] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("uyjoy_user_avatar") || "/listings/host-avatar.svg";
+    }
+    return "/listings/host-avatar.svg";
+  });
+
+  const handleHostAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const img = new Image();
+      img.src = ev.target?.result as string;
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const maxDim = 240;
+        let w = img.width;
+        let h = img.height;
+        if (w > h) {
+          if (w > maxDim) {
+            h = Math.round((h * maxDim) / w);
+            w = maxDim;
+          }
+        } else {
+          if (h > maxDim) {
+            w = Math.round((w * maxDim) / h);
+            h = maxDim;
+          }
+        }
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, w, h);
+          const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+          setHostAvatar(dataUrl);
+          try { localStorage.setItem("uyjoy_user_avatar", dataUrl); } catch {}
+          toast.success("Mezbon surati yuklandi!");
+        }
+      };
+    };
+    reader.readAsDataURL(file);
+  };
+
   const create = trpc.listings.create.useMutation();
   const nightly = useMemo(() => nightlyFromWeekly(weekly || 0), [weekly]);
   const myListings = useMemo(() => stays.filter((s) => s.source === "user"), [stays]);
@@ -189,7 +235,8 @@ export default function PostRoom() {
     if (address.trim().length < 3) { setError(t.post_err_address); return; }
 
     const finalImages = imageList.length ? imageList : [DEFAULT_STAY_IMAGE];
-    const hostName = user?.name?.trim() || "UyJoy mezboni";
+    const finalHostName = hostNameInput.trim() || user?.name?.trim() || "UyJoy mezboni";
+    const finalHostAvatar = hostAvatar || "/listings/host-avatar.svg";
 
     const payload = {
       title: title.trim(),
@@ -205,6 +252,7 @@ export default function PostRoom() {
       pricePerWeek: weekly,
       guestCount: guests,
       homeType,
+      hostAvatar: finalHostAvatar,
     };
 
     // Save locally immediately so it instantly appears in catalogue
@@ -221,7 +269,8 @@ export default function PostRoom() {
       telegram: payload.telegram,
       pricePerWeek: payload.pricePerWeek,
       guestCount: payload.guestCount,
-      hostName,
+      hostName: finalHostName,
+      hostAvatar: finalHostAvatar,
     });
 
     setCreatedStayId(localStay.id);
@@ -395,11 +444,42 @@ export default function PostRoom() {
               </div>
             </section>
 
-            {/* 2. Bog'lanish ma'lumotlari */}
+            {/* 2. Mezbon ma'lumotlari va Bog'lanish */}
             <section className="bg-white rounded-2xl border border-gray-200 shadow-xs p-6 space-y-4">
               <h2 className="font-display font-bold text-lg flex items-center gap-2 text-gray-900">
-                <Phone size={18} className="text-[#e8175d]"/> Bog'lanish (Mezbon bilan aloqa)
+                <Users size={18} className="text-[#e8175d]"/> Mezbon ma'lumotlari (Sizning profilingiz)
               </h2>
+
+              {/* Host avatar & personal name */}
+              <div className="flex items-center gap-4 p-4 rounded-2xl bg-[#faf8f6] border border-gray-200">
+                <div className="relative shrink-0">
+                  <img
+                    src={hostAvatar}
+                    alt="Mezbon surati"
+                    className="w-16 h-16 rounded-full object-cover border-2 border-white shadow-sm bg-white"
+                  />
+                  <label className="absolute -bottom-1 -right-1 bg-[#e8175d] text-white p-1.5 rounded-full cursor-pointer hover:bg-[#c0124d] transition-colors shadow">
+                    <Camera size={13} />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleHostAvatarChange}
+                    />
+                  </label>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <label className="text-xs font-semibold text-gray-700 mb-1 block">Mezbon ismi</label>
+                  <input
+                    value={hostNameInput}
+                    onChange={(e) => setHostNameInput(e.target.value)}
+                    placeholder={user?.name || "Ismingizni kiriting"}
+                    className={field}
+                  />
+                  <p className="text-[11px] text-gray-500 mt-1">Uyingiz e'lonida aynan mana shu suratingiz va ismingiz ko'rsatiladi</p>
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="text-xs font-semibold text-gray-700 mb-1.5 block">Telefon raqam</label>
