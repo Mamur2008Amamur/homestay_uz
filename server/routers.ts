@@ -5,7 +5,7 @@ import { getSessionCookieOptions } from "./_core/cookies.js";
 import { systemRouter } from "./_core/systemRouter.js";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc.js";
 import { createBooking, createListing, getLatestVerificationCode, getListingById, markVerificationCodeUsed, searchListings, toggleWishlist } from "./db.js";
-import { createSessionToken, clearSessionCookie, loginWithEmail, normalizeEmail, registerWithEmail, requestEmailVerificationForUser, requestPasswordReset, resetPasswordWithCode, setSessionCookie, verifyEmailForUser } from "./auth.js";
+import { createSessionToken, clearSessionCookie, findUserByEmail, loginWithEmail, normalizeEmail, registerWithEmail, requestEmailVerificationForUser, requestPasswordReset, resetPasswordWithCode, setSessionCookie, verifyEmailForUser } from "./auth.js";
 import { createPaymeCheckout } from "./payments.js";
 import { requestEmailVerification, verifyEmailCode } from "./verification.js";
 
