@@ -183,8 +183,8 @@ export function AuthDialog() {
         setNotice(t.auth_missing_fields);
         return;
       }
-      if (form.password.length < 8) {
-        setNotice("Parol kamida 8 ta belgidan iborat bo'lishi kerak.");
+      if (form.password.length < 6) {
+        setNotice("Parol kamida 6 ta belgidan iborat bo'lishi kerak.");
         return;
       }
       registerMutation.mutate({
@@ -234,9 +234,9 @@ export function AuthDialog() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="w-[min(94vw,430px)] rounded-3xl border border-gray-100 bg-white p-0 shadow-[0_25px_70px_rgba(0,0,0,0.15)] overflow-hidden">
+      <DialogContent className="w-[min(94vw,440px)] max-h-[92vh] flex flex-col rounded-3xl border border-gray-100 bg-white p-0 shadow-[0_25px_70px_rgba(0,0,0,0.18)] overflow-hidden">
         {/* Top tabs for quick switching */}
-        <div className="bg-[#faf8f6] p-4 border-b border-gray-100">
+        <div className="bg-[#faf8f6] p-4 border-b border-gray-100 shrink-0">
           <div className="grid grid-cols-2 p-1 bg-white rounded-2xl border border-gray-200 shadow-xs mb-3">
             <button
               type="button"
@@ -278,7 +278,7 @@ export function AuthDialog() {
           </DialogHeader>
         </div>
 
-        <form onSubmit={submit} className="space-y-4 p-5 sm:p-6">
+        <form onSubmit={submit} className="flex-1 overflow-y-auto space-y-4 p-5 sm:p-6 pb-10 overscroll-contain">
           {mode === "register" && (
             <>
               {/* Profile Photo Upload - Prominent & Essential */}
