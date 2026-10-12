@@ -17,13 +17,14 @@ export async function createContext(
 
   try {
     let token = "";
-    const authHeader = opts.req.headers.authorization;
-    if (authHeader && authHeader.toLowerCase().startsWith("bearer ")) {
-      token = authHeader.slice(7).trim();
+    const req = opts.req as any;
+    const authHeader = req?.headers?.authorization;
+    if (authHeader && String(authHeader).toLowerCase().startsWith("bearer ")) {
+      token = String(authHeader).slice(7).trim();
     }
     if (!token) {
-      const rawCookie = opts.req.headers.cookie || "";
-      const match = rawCookie.split(";").map((part) => part.trim()).find((part) => part.startsWith(`${COOKIE_NAME}=`));
+      const rawCookie: string = req?.headers?.cookie || "";
+      const match = rawCookie.split(";").map((part: string) => part.trim()).find((part: string) => part.startsWith(`${COOKIE_NAME}=`));
       if (match) {
         token = decodeURIComponent(match.slice(COOKIE_NAME.length + 1));
       }

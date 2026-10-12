@@ -109,7 +109,7 @@ export async function decodeSessionToken(token: string) {
   };
 }
 
-export function setSessionCookie(res: Response, req: Request, token: string) {
+export function setSessionCookie(res: any, req: any, token: string) {
   const options = getSessionCookieOptions(req);
   res.cookie(COOKIE_NAME, token, {
     ...options,
@@ -118,7 +118,7 @@ export function setSessionCookie(res: Response, req: Request, token: string) {
   });
 }
 
-export function clearSessionCookie(res: Response, req: Request) {
+export function clearSessionCookie(res: any, req: any) {
   const options = getSessionCookieOptions(req);
   res.clearCookie(COOKIE_NAME, { ...options, maxAge: -1 });
 }
