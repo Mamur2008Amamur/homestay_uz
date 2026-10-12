@@ -4,9 +4,10 @@ export { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
 
 export const AUTH_MODAL_EVENT = "uyjoy:open-auth-modal";
 
-export const startLogin = () => {
+export const startLogin = (mode?: "login" | "register" | "forgot" | "verify" | React.SyntheticEvent | unknown) => {
   if (typeof window === "undefined") return;
-  window.dispatchEvent(new CustomEvent(AUTH_MODAL_EVENT, { detail: { mode: "login" } }));
+  const targetMode = typeof mode === "string" ? mode : "login";
+  window.dispatchEvent(new CustomEvent(AUTH_MODAL_EVENT, { detail: { mode: targetMode } }));
 };
 
 // Start the Manus OAuth login. Call this from an event handler or effect at the
