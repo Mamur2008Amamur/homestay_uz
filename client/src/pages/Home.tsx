@@ -339,7 +339,7 @@ export default function Home() {
   const navTextCls  = transparent ? "text-white" : "text-gray-700";
 
   return (
-    <div className="min-h-screen bg-[#faf8f5] text-gray-900 font-sans selection:bg-[#e8175d] selection:text-white relative">
+    <div className="min-h-screen bg-white text-gray-900 font-sans selection:bg-[#e8175d] selection:text-white relative">
 
       {/* ── NAVBAR ── */}
       <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled?"bg-white/95 backdrop-blur-md shadow-xs border-b border-gray-200/80":"bg-transparent"}`}>
@@ -453,11 +453,11 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── STATS SHOWCASE (Modern Luxury Dark Gradient with Ambient Glow) ── */}
-      <section className="relative overflow-hidden bg-gradient-to-r from-[#0d1f1c] via-[#163833] to-[#0d1f1c] text-white py-10 border-y border-[#2a4d46]/40 shadow-inner">
+      {/* ── STATS SHOWCASE (Modern Luxury Midnight Slate with Ambient Glow) ── */}
+      <section className="relative overflow-hidden bg-gradient-to-r from-[#0f172a] via-[#1e293b] to-[#0f172a] text-white py-10 border-y border-slate-800 shadow-inner">
         {/* Subtle decorative glow */}
-        <div className="absolute -top-24 left-1/4 w-96 h-96 bg-[#e8175d]/15 rounded-full blur-3xl pointer-events-none"/>
-        <div className="absolute -bottom-24 right-1/4 w-96 h-96 bg-[#2dd4bf]/15 rounded-full blur-3xl pointer-events-none"/>
+        <div className="absolute -top-24 left-1/4 w-96 h-96 bg-[#e8175d]/20 rounded-full blur-3xl pointer-events-none"/>
+        <div className="absolute -bottom-24 right-1/4 w-96 h-96 bg-[#38bdf8]/15 rounded-full blur-3xl pointer-events-none"/>
 
         <div className="relative z-10 mx-auto max-w-[1320px] px-5 sm:px-8">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
@@ -466,7 +466,7 @@ export default function Home() {
                 key={s.l}
                 className="group relative rounded-2xl bg-white/[0.06] hover:bg-white/[0.10] backdrop-blur-md border border-white/10 hover:border-white/20 p-5 sm:p-6 transition-all duration-300 hover:-translate-y-1 text-center shadow-lg"
               >
-                <div className="mx-auto w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center mb-3 text-emerald-400 group-hover:scale-110 transition-transform">
+                <div className="mx-auto w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
                   {idx === 0 && <HomeIcon size={20} className="text-[#f43f5e]"/>}
                   {idx === 1 && <MapPin size={20} className="text-[#38bdf8]"/>}
                   {idx === 2 && <Star size={20} className="text-[#fbbf24] fill-[#fbbf24]"/>}
@@ -475,7 +475,7 @@ export default function Home() {
                 <p className="font-display text-3xl sm:text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-amber-100 to-white">
                   {s.n}
                 </p>
-                <p className="text-xs sm:text-sm font-medium text-emerald-100/75 mt-1.5 uppercase tracking-wider">
+                <p className="text-xs sm:text-sm font-medium text-slate-300 mt-1.5 uppercase tracking-wider">
                   {s.l}
                 </p>
               </div>
@@ -536,13 +536,13 @@ export default function Home() {
       </section>
 
       {/* ── WHY ── */}
-      <section className="relative py-20 bg-gradient-to-b from-[#f4efe6] via-[#faf8f5] to-[#f4efe6] border-y border-stone-200/70 overflow-hidden">
+      <section className="relative py-20 bg-gradient-to-b from-[#f8fafc] via-[#f1f5f9]/60 to-[#f8fafc] border-y border-slate-200/80 overflow-hidden">
         <div className="mx-auto max-w-[1320px] px-5 sm:px-8">
           <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#1b3a36]/10 text-[#1b3a36] text-xs font-bold uppercase tracking-wider mb-2">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#e8175d]/10 text-[#e8175d] text-xs font-bold uppercase tracking-wider mb-2 border border-[#e8175d]/15">
               ⭐ {t.home_why_kicker}
             </div>
-            <h2 className="font-display text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight">
+            <h2 className="font-display text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
               {t.home_why_title}
             </h2>
           </div>
@@ -550,16 +550,16 @@ export default function Home() {
             {WHY.map((w) => (
               <div
                 key={w.title}
-                className="bg-white rounded-3xl p-7 shadow-[0_10px_30px_rgba(0,0,0,0.04)] border border-stone-200/80 hover:-translate-y-1.5 hover:shadow-xl transition-all duration-300 relative group"
+                className="bg-white rounded-3xl p-7 shadow-[0_4px_25px_rgba(0,0,0,0.04)] border border-slate-200/80 hover:-translate-y-1.5 hover:shadow-xl hover:border-[#e8175d]/40 transition-all duration-300 relative group"
               >
                 <div
                   className="w-14 h-14 rounded-2xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform shadow-xs"
-                  style={{ backgroundColor: w.color + "18" }}
+                  style={{ backgroundColor: w.color + "15" }}
                 >
                   <w.icon size={26} style={{ color: w.color }} />
                 </div>
-                <h3 className="font-display font-bold text-lg text-gray-900 mb-2">{w.title}</h3>
-                <p className="text-sm text-gray-600 leading-relaxed">{w.desc}</p>
+                <h3 className="font-display font-bold text-lg text-slate-900 mb-2">{w.title}</h3>
+                <p className="text-sm text-slate-600 leading-relaxed">{w.desc}</p>
               </div>
             ))}
           </div>
@@ -655,20 +655,20 @@ export default function Home() {
       </section>
 
       {/* ── REVIEWS ── */}
-      <section className="relative py-20 bg-gradient-to-b from-[#f4efe6] via-[#faf8f5] to-[#f4efe6] border-y border-stone-200/70">
+      <section className="relative py-20 bg-gradient-to-b from-[#f8fafc] via-[#f1f5f9]/60 to-[#f8fafc] border-y border-slate-200/80">
         <div className="mx-auto max-w-[1320px] px-5 sm:px-8">
           <div className="flex items-end justify-between mb-10">
             <div>
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#1b3a36]/10 text-[#1b3a36] text-xs font-bold uppercase tracking-wider mb-2">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#e8175d]/10 text-[#e8175d] text-xs font-bold uppercase tracking-wider mb-2 border border-[#e8175d]/15">
                 💬 {t.home_reviews_kicker}
               </div>
-              <h2 className="font-display text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight">
+              <h2 className="font-display text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
                 {t.home_reviews_title}
               </h2>
             </div>
             <a
               href="/reviews"
-              className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white border border-gray-200 shadow-xs hover:border-[#e8175d] hover:text-[#e8175d] font-bold text-sm text-gray-700 transition-all"
+              className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white border border-slate-200 shadow-xs hover:border-[#e8175d] hover:text-[#e8175d] font-bold text-sm text-slate-700 transition-all"
             >
               {t.home_see_all} <ArrowRight size={16}/>
             </a>
@@ -677,19 +677,19 @@ export default function Home() {
             {REVIEWS_DATA.map((r) => (
               <div
                 key={r.name}
-                className="bg-white rounded-3xl p-7 shadow-[0_10px_30px_rgba(0,0,0,0.04)] border border-stone-200/80 flex flex-col hover:-translate-y-1.5 hover:shadow-xl transition-all duration-300"
+                className="bg-white rounded-3xl p-7 shadow-[0_4px_25px_rgba(0,0,0,0.04)] border border-slate-200/80 flex flex-col hover:-translate-y-1.5 hover:shadow-xl hover:border-[#e8175d]/30 transition-all duration-300"
               >
                 <div className="flex gap-1 mb-4">
                   {[1, 2, 3, 4, 5].map((s) => (
                     <Star key={s} size={15} className="fill-[#fbbf24] text-[#fbbf24]" />
                   ))}
                 </div>
-                <p className="text-gray-700 text-sm leading-relaxed flex-1 mb-6 italic">"{r.text}"</p>
-                <div className="flex items-center gap-3 border-t border-gray-100 pt-4">
+                <p className="text-slate-700 text-sm leading-relaxed flex-1 mb-6 italic">"{r.text}"</p>
+                <div className="flex items-center gap-3 border-t border-slate-100 pt-4">
                   <img src={r.avatar} alt={r.name} className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm" />
                   <div>
-                    <p className="font-bold text-sm text-gray-900">{r.name}</p>
-                    <p className="text-xs text-gray-400 font-medium">{r.country} · {r.stay}</p>
+                    <p className="font-bold text-sm text-slate-900">{r.name}</p>
+                    <p className="text-xs text-slate-400 font-medium">{r.country} · {r.stay}</p>
                   </div>
                 </div>
               </div>
